@@ -4037,7 +4037,7 @@ function _expandFromEnv(value) {
 const _inlineRuntimeConfig = {
   "app": {
     "baseURL": "/",
-    "buildId": "1c3508ba-ceb0-40a5-8864-d5146b808815",
+    "buildId": "adf0536a-564b-4ce6-9686-449217a9dbfd",
     "buildAssetsDir": "/_nuxt/",
     "cdnURL": ""
   },
@@ -4509,58 +4509,58 @@ const assets = {
   "/_nuxt/CtkArABA.js": {
     "type": "text/javascript; charset=utf-8",
     "etag": "\"2503-oWx3suc1J0/X7toamTz0KOLb2S0\"",
-    "mtime": "2026-05-29T20:02:49.615Z",
+    "mtime": "2026-05-29T20:15:35.200Z",
     "size": 9475,
     "path": "../public/_nuxt/CtkArABA.js"
+  },
+  "/_nuxt/HcNwkrUS.js": {
+    "type": "text/javascript; charset=utf-8",
+    "etag": "\"36992-1BniqqSE1dGN6Vba0FeaPGFruHU\"",
+    "mtime": "2026-05-29T20:15:35.200Z",
+    "size": 223634,
+    "path": "../public/_nuxt/HcNwkrUS.js"
   },
   "/_nuxt/LVtHI_m9.js": {
     "type": "text/javascript; charset=utf-8",
     "etag": "\"d2a-OcC05jtFBpJO8XJZadQr74dfS2U\"",
-    "mtime": "2026-05-29T20:02:49.619Z",
+    "mtime": "2026-05-29T20:15:35.200Z",
     "size": 3370,
     "path": "../public/_nuxt/LVtHI_m9.js"
   },
   "/_nuxt/entry.CvEYlFcU.css": {
     "type": "text/css; charset=utf-8",
     "etag": "\"3074-vpGCc9lE9QiyZwvK6je11bUpLWU\"",
-    "mtime": "2026-05-29T20:02:49.619Z",
+    "mtime": "2026-05-29T20:15:35.200Z",
     "size": 12404,
     "path": "../public/_nuxt/entry.CvEYlFcU.css"
   },
   "/_nuxt/error-404.DL_4WIao.css": {
     "type": "text/css; charset=utf-8",
     "etag": "\"dca-KnjyV0UbpsrliiJzZx69defY74k\"",
-    "mtime": "2026-05-29T20:02:49.619Z",
+    "mtime": "2026-05-29T20:15:35.200Z",
     "size": 3530,
     "path": "../public/_nuxt/error-404.DL_4WIao.css"
   },
   "/_nuxt/error-500.I1Dtv2V5.css": {
     "type": "text/css; charset=utf-8",
     "etag": "\"75a-vEGyJqldBVJrnMfcLsrGaHcxYl0\"",
-    "mtime": "2026-05-29T20:02:49.619Z",
+    "mtime": "2026-05-29T20:15:35.200Z",
     "size": 1882,
     "path": "../public/_nuxt/error-500.I1Dtv2V5.css"
   },
   "/_nuxt/builds/latest.json": {
     "type": "application/json",
-    "etag": "\"47-2LHGRL8OYyN8irf6GGWNTNxYCUg\"",
-    "mtime": "2026-05-29T20:02:49.611Z",
+    "etag": "\"47-HKDG23XGf61ul0t5eYfSgnJ8mDU\"",
+    "mtime": "2026-05-29T20:15:35.196Z",
     "size": 71,
     "path": "../public/_nuxt/builds/latest.json"
   },
-  "/_nuxt/builds/meta/1c3508ba-ceb0-40a5-8864-d5146b808815.json": {
+  "/_nuxt/builds/meta/adf0536a-564b-4ce6-9686-449217a9dbfd.json": {
     "type": "application/json",
-    "etag": "\"58-8jq9VRvbaOfoGWrGiVjhfMS+STg\"",
-    "mtime": "2026-05-29T20:02:49.607Z",
+    "etag": "\"58-qNbKni6ST+j3yGX7Bxqc48Sp3tk\"",
+    "mtime": "2026-05-29T20:15:35.192Z",
     "size": 88,
-    "path": "../public/_nuxt/builds/meta/1c3508ba-ceb0-40a5-8864-d5146b808815.json"
-  },
-  "/_nuxt/HcNwkrUS.js": {
-    "type": "text/javascript; charset=utf-8",
-    "etag": "\"36992-1BniqqSE1dGN6Vba0FeaPGFruHU\"",
-    "mtime": "2026-05-29T20:02:49.615Z",
-    "size": 223634,
-    "path": "../public/_nuxt/HcNwkrUS.js"
+    "path": "../public/_nuxt/builds/meta/adf0536a-564b-4ce6-9686-449217a9dbfd.json"
   }
 };
 
@@ -4756,10 +4756,12 @@ const _SwZGrh = eventHandler((event) => {
 
 const _SxA8c9 = defineEventHandler(() => {});
 
+const _lazy_tyrVAI = () => import('../routes/api/race-days.get.mjs');
 const _lazy_VIrAHj = () => import('../routes/renderer.mjs').then(function (n) { return n.r; });
 
 const handlers = [
   { route: '', handler: _SwZGrh, lazy: false, middleware: true, method: undefined },
+  { route: '/api/race-days', handler: _lazy_tyrVAI, lazy: true, middleware: false, method: "get" },
   { route: '/__nuxt_error', handler: _lazy_VIrAHj, lazy: true, middleware: false, method: undefined },
   { route: '/__nuxt_island/**', handler: _SxA8c9, lazy: false, middleware: false, method: undefined },
   { route: '/**', handler: _lazy_VIrAHj, lazy: true, middleware: false, method: undefined }
@@ -5217,5 +5219,5 @@ trapUnhandledNodeErrors();
 setupGracefulShutdown(listener, nitroApp);
 const nodeServer = {};
 
-export { $fetch as $, withoutTrailingSlash as A, createHooks as a, defineRenderHandler as b, createError$1 as c, decodePath as d, defu as e, encodePath as f, getContext as g, getQuery as h, getResponseStatus as i, getResponseStatusText as j, getRouteRules as k, hasProtocol as l, isEqual as m, isScriptProtocol as n, joinRelativeURL as o, joinURL as p, nodeServer as q, parseQuery as r, parseURL as s, sanitizeStatusCode as t, stringifyParsedURL as u, stringifyQuery as v, useNitroApp as w, useRuntimeConfig as x, withQuery as y, withTrailingSlash as z };
+export { $fetch as $, withTrailingSlash as A, withoutTrailingSlash as B, createHooks as a, defineEventHandler as b, createError$1 as c, decodePath as d, defineRenderHandler as e, defu as f, encodePath as g, getContext as h, getQuery as i, getResponseStatus as j, getResponseStatusText as k, getRouteRules as l, hasProtocol as m, isEqual as n, isScriptProtocol as o, joinRelativeURL as p, joinURL as q, nodeServer as r, parseQuery as s, parseURL as t, sanitizeStatusCode as u, stringifyParsedURL as v, stringifyQuery as w, useNitroApp as x, useRuntimeConfig as y, withQuery as z };
 //# sourceMappingURL=nitro.mjs.map

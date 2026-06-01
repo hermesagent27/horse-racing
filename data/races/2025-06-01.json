@@ -1,0 +1,267 @@
+[
+  {
+    "id": "RP-2025-06-01-R1",
+    "number": 1,
+    "date": "2025-06-01",
+    "trackCode": "RP",
+    "distance": "330 yards",
+    "surface": "Fast",
+    "type": "Maiden",
+    "postTime": "14:00",
+    "purse": 12500,
+    "status": "upcoming",
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Lightning Bolt",
+          "postPosition": 1,
+          "morningLineOdds": "2-1",
+          "jockey": "J. Smith",
+          "trainer": "A. Johnson",
+          "lifetimeStats": {"starts": 8, "wins": 3, "places": 2, "shows": 1}
+        },
+        "morningLineOdds": "2-1",
+        "confidenceScore": 85
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Thunder Strike",
+          "postPosition": 2,
+          "morningLineOdds": "4-1",
+          "jockey": "M. Davis",
+          "trainer": "R. Williams",
+          "lifetimeStats": {"starts": 12, "wins": 4, "places": 3, "shows": 2}
+        },
+        "morningLineOdds": "4-1",
+        "confidenceScore": 72
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Speed Demon",
+          "postPosition": 3,
+          "morningLineOdds": "6-1",
+          "jockey": "K. Garcia",
+          "trainer": "L. Martinez",
+          "lifetimeStats": {"starts": 6, "wins": 2, "places": 1, "shows": 1}
+        },
+        "morningLineOdds": "6-1",
+        "confidenceScore": 68
+      }
+    ]
+  },
+  {
+    "id": "RP-2025-06-01-R2",
+    "number": 2,
+    "date": "2025-06-01",
+    "trackCode": "RP",
+    "distance": "350 yards",
+    "surface": "Fast",
+    "type": "Claiming",
+    "postTime": "14:25",
+    "purse": 15000,
+    "status": "upcoming",
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Morning Glory",
+          "postPosition": 1,
+          "morningLineOdds": "5-2",
+          "jockey": "P. Rodriguez",
+          "trainer": "T. Anderson",
+          "lifetimeStats": {"starts": 15, "wins": 5, "places": 4, "shows": 3}
+        },
+        "morningLineOdds": "5-2",
+        "confidenceScore": 78
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Fast Runner",
+          "postPosition": 2,
+          "morningLineOdds": "3-1",
+          "jockey": "J. Wilson",
+          "trainer": "S. Thompson",
+          "lifetimeStats": {"starts": 20, "wins": 7, "places": 5, "shows": 4}
+        },
+        "morningLineOdds": "3-1",
+        "confidenceScore": 82
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Quick Silver",
+          "postPosition": 3,
+          "morningLineOdds": "7-2",
+          "jockey": "A. Johnson",
+          "trainer": "M. Brown",
+          "lifetimeStats": {"starts": 10, "wins": 3, "places": 2, "shows": 2}
+        },
+        "morningLineOdds": "7-2",
+        "confidenceScore": 75
+      },
+      {
+        "postPosition": 4,
+        "horse": {
+          "name": "Rocket Man",
+          "postPosition": 4,
+          "morningLineOdds": "8-1",
+          "jockey": "R. Lee",
+          "trainer": "C. Taylor",
+          "lifetimeStats": {"starts": 8, "wins": 1, "places": 2, "shows": 2}
+        },
+        "morningLineOdds": "8-1",
+        "confidenceScore": 65
+      }
+    ]
+  },
+  {
+    "id": "RP-2025-06-01-R3",
+    "number": 3,
+    "date": "2025-06-01",
+    "trackCode": "RP",
+    "distance": "400 yards",
+    "surface": "Fast",
+    "type": "Allowance",
+    "postTime": "14:50",
+    "purse": 25000,
+    "status": "upcoming",
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Star Power",
+          "postPosition": 1,
+          "morningLineOdds": "9-5",
+          "jockey": "C. Martinez",
+          "trainer": "D. Johnson",
+          "lifetimeStats": {"starts": 25, "wins": 12, "places": 6, "shows": 4}
+        },
+        "morningLineOdds": "9-5",
+        "confidenceScore": 88
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Golden Boy",
+          "postPosition": 2,
+          "morningLineOdds": "4-1",
+          "jockey": "L. Perez",
+          "trainer": "J. White",
+          "lifetimeStats": {"starts": 18, "wins": 6, "places": 5, "shows": 4}
+        },
+        "morningLineOdds": "4-1",
+        "confidenceScore": 80
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Champion's Way",
+          "postPosition": 3,
+          "morningLineOdds": "6-1",
+          "jockey": "B. Davis",
+          "trainer": "K. Miller",
+          "lifetimeStats": {"starts": 14, "wins": 4, "places": 3, "shows": 4}
+        },
+        "morningLineOdds": "6-1",
+        "confidenceScore": 74
+      }
+    ]
+  },
+  {
+    "id": "RP-2025-06-01-R4",
+    "number": 4,
+    "date": "2025-06-01",
+    "trackCode": "RP",
+    "distance": "330 yards",
+    "surface": "Fast",
+    "type": "Maiden Special",
+    "postTime": "15:15",
+    "purse": 18000,
+    "status": "upcoming",
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "First Try",
+          "postPosition": 1,
+          "morningLineOdds": "3-1",
+          "jockey": "M. Anderson",
+          "trainer": "N. Clark",
+          "lifetimeStats": {"starts": 4, "wins": 1, "places": 1, "shows": 0}
+        },
+        "morningLineOdds": "3-1",
+        "confidenceScore": 70
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Newcomer",
+          "postPosition": 2,
+          "morningLineOdds": "5-1",
+          "jockey": "S. Hall",
+          "trainer": "P. Lewis",
+          "lifetimeStats": {"starts": 3, "wins": 0, "places": 1, "shows": 1}
+        },
+        "morningLineOdds": "5-1",
+        "confidenceScore": 62
+      }
+    ]
+  },
+  {
+    "id": "RP-2025-06-01-R5",
+    "number": 5,
+    "date": "2025-06-01",
+    "trackCode": "RP",
+    "distance": "440 yards",
+    "surface": "Fast",
+    "type": "Stakes",
+    "postTime": "15:45",
+    "purse": 75000,
+    "status": "upcoming",
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Championship",
+          "postPosition": 1,
+          "morningLineOdds": "2-1",
+          "jockey": "A. Torres",
+          "trainer": "F. Gonzalez",
+          "lifetimeStats": {"starts": 30, "wins": 15, "places": 8, "shows": 4}
+        },
+        "morningLineOdds": "2-1",
+        "confidenceScore": 90
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Elite Runner",
+          "postPosition": 2,
+          "morningLineOdds": "5-2",
+          "jockey": "H. Kim",
+          "trainer": "G. Park",
+          "lifetimeStats": {"starts": 28, "wins": 12, "places": 7, "shows": 5}
+        },
+        "morningLineOdds": "5-2",
+        "confidenceScore": 85
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Top Contender",
+          "postPosition": 3,
+          "morningLineOdds": "4-1",
+          "jockey": "R. Singh",
+          "trainer": "M. Patel",
+          "lifetimeStats": {"starts": 22, "wins": 8, "places": 6, "shows": 5}
+        },
+        "morningLineOdds": "4-1",
+        "confidenceScore": 80
+      }
+    ]
+  }
+]

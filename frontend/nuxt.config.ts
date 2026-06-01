@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "@nuxt/hints",
     "@nuxt/icon",
     "@nuxtjs/color-mode",
+    "@pinia/nuxt",
   ],
   colorMode: {
     preference: "system",

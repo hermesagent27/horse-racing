@@ -1,5 +1,3 @@
-import { defineStore } from 'pinia'
-
 export interface Horse {
   name: string
   postPosition: number
@@ -42,7 +40,7 @@ export interface Race {
 
 export const useRacesStore = defineStore('races', () => {
   const races = ref<Race[]>([])
-  const currentDate = ref(new Date().toISOString().split('T')[0])
+  const currentDate = ref(getToday())
   const loading = ref(false)
   const error = ref<string | null>(null)
 
@@ -63,24 +61,24 @@ export const useRacesStore = defineStore('races', () => {
   }
 
   const setDate = (date: string) => {
+    if (!isValidDate(date)) return
     currentDate.value = date
     fetchRaces(date)
   }
 
   const nextDate = () => {
-    const d = new Date(currentDate.value)
-    d.setDate(d.getDate() + 1)
-    setDate(d.toISOString().split('T')[0])
+    currentDate.value = addDays(currentDate.value, 1)
+    fetchRaces(currentDate.value)
   }
 
   const prevDate = () => {
-    const d = new Date(currentDate.value)
-    d.setDate(d.getDate() - 1)
-    setDate(d.toISOString().split('T')[0])
+    currentDate.value = addDays(currentDate.value, -1)
+    fetchRaces(currentDate.value)
   }
 
   const today = () => {
-    setDate(new Date().toISOString().split('T')[0])
+    currentDate.value = getToday()
+    fetchRaces(currentDate.value)
   }
 
   return {

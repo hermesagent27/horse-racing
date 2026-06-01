@@ -6,15 +6,9 @@ await callOnce(async () => {
   await store.fetchRaces()
 })
 
-// Format date for display
+// Computed - use unified date formatter
 const formattedDate = computed(() => {
-  const d = new Date(store.currentDate)
-  return d.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  return formatDisplayDate(store.currentDate)
 })
 
 // Get track name

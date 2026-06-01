@@ -1,17 +1,16 @@
+<script setup lang="ts">
+// Root page - redirects based on auth status
+const { data: auth } = await useFetch('/api/auth/status')
+
+if (auth.value?.authenticated) {
+  await navigateTo('/races')
+} else {
+  await navigateTo('/login')
+}
+</script>
+
 <template>
-  <div class="hero bg-base-300 h-full container mx-auto mt-4">
-    <div class="hero-content text-center min-h-96">
-      <div class="max-w-md">
-        <h1 class="text-5xl font-bold">
-          Landing Page
-        </h1>
-        <p class="py-6">
-          landing page description
-        </p>
-        <button class="btn btn-accent min-w-50">
-          Call To Action
-        </button>
-      </div>
-    </div>
+  <div class="flex items-center justify-center min-h-screen">
+    <span class="loading loading-spinner loading-lg"></span>
   </div>
 </template>

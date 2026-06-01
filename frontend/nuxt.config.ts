@@ -24,4 +24,8 @@ export default defineNuxtConfig({
       tailwindcss(),
     ],
   },
+  runtimeConfig: {
+    // Server-only (never exposed to client)
+    authPassword: process.env.AUTH_PASSWORD || 'changeme',
+  },
 });

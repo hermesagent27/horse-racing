@@ -56,6 +56,7 @@ async function logout() {
 
 const menuItems = [
   { label: 'Races', path: '/races', icon: 'lucide:calendar' },
+  { label: 'Upload', path: '/upload', icon: 'lucide:upload' },
   { label: 'Bets', path: '/bets', icon: 'lucide:ticket' },
   { label: 'Bankroll', path: '/bankroll', icon: 'lucide:wallet' },
   { label: 'History', path: '/history', icon: 'lucide:history' },

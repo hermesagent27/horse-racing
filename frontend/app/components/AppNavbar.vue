@@ -1,4 +1,4 @@
-<script setup lang="ts"
+<script setup lang="ts">
 const mobileMenuOpen = ref(false)
 const menuRef = ref<HTMLElement | null>(null)
 const menuButtonRef = ref<HTMLElement | null>(null)

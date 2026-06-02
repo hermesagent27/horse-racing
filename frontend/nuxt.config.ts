@@ -30,5 +30,21 @@ export default defineNuxtConfig({
     authPassword: process.env.AUTH_PASSWORD || 'changeme',
     githubToken: process.env.GITHUB_TOKEN,
     githubRepo: process.env.GITHUB_REPO || 'hermesagent27/horse-racing',
+    // Data path override for serverless environments
+    dataPath: process.env.DATA_PATH || '../../data'
+  },
+
+  nitro: {
+    // Include data files in server build
+    serverAssets: [
+      {
+        baseName: 'races',
+        dir: '../../data/races'
+      },
+      {
+        baseName: 'sessions', 
+        dir: '../../data/sessions'
+      }
+    ]
   },
 });

@@ -54,8 +54,13 @@ export default defineEventHandler(async (event) => {
     try {
       const sessionPath = join(process.cwd(), '..', '..', 'data', 'sessions', `${date}.json`)
       const sessionContent = readFileSync(sessionPath, 'utf-8')
-      const session = JSON.parse(sessionContent)
-      bets = session.bets || []
+      const sessionData = JSON.parse(sessionContent)
+      // Handle nested sessions structure
+      if (sessionData.sessions && Array.isArray(sessionData.sessions)) {
+        bets = sessionData.sessions[0]?.bets || []
+      } else {
+        bets = sessionData.bets || []
+      }
     } catch (sessionError) {
       // No session data
     }

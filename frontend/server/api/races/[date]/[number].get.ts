@@ -1,4 +1,4 @@
-// Get specific race by date and number - uses GitHub API for data in serverless environments
+// Get specific race by date and number - uses GitHub API ONLY
 export default defineEventHandler(async (event) => {
   const date = getRouterParam(event, 'date')
   const number = parseInt(getRouterParam(event, 'number') || '0')
@@ -15,46 +15,45 @@ export default defineEventHandler(async (event) => {
   const token = config.githubToken
   const repo = config.githubRepo || 'hermesagent27/horse-racing'
   
+  if (!token) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'GitHub token not configured'
+    })
+  }
+  
   try {
     let races: any[] = []
     
-    // Try GitHub API first (works on Vercel)
-    if (token) {
-      try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/races/${date}.json`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json',
-            'X-GitHub-Api-Version': '2022-11-28'
-          }
-        })
-        
-        if (response.ok) {
-          const data = await response.json()
-          const content = Buffer.from(data.content, 'base64').toString('utf-8')
-          const parsed = JSON.parse(content)
-          races = parsed.races || parsed
+    // Load races from GitHub API
+    try {
+      const response = await fetch(`https://api.github.com/repos/${repo}/contents/data/races/${date}.json`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
         }
-      } catch (githubErr) {
-        console.log('[API] GitHub fetch failed, trying local:', githubErr)
-      }
-    }
-    
-    // Fallback to local filesystem (development)
-    if (races.length === 0) {
-      try {
-        const { readFileSync } = await import('fs')
-        const { join } = await import('path')
-        const raceFilePath = join(process.cwd(), '..', '..', 'data', 'races', `${date}.json`)
-        const content = readFileSync(raceFilePath, 'utf-8')
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        const content = Buffer.from(data.content, 'base64').toString('utf-8')
         const parsed = JSON.parse(content)
         races = parsed.races || parsed
-      } catch (fsErr) {
+      } else if (response.status === 404) {
         throw createError({
           statusCode: 404,
           statusMessage: `No race data found for ${date}`
         })
+      } else {
+        throw new Error(`GitHub API error: ${response.status}`)
       }
+    } catch (err: any) {
+      console.error('[API] GitHub fetch error:', err.message)
+      throw createError({
+        statusCode: 500,
+        statusMessage: 'Failed to fetch from GitHub'
+      })
     }
     
     // Find specific race
@@ -67,32 +66,20 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Load session/bet data
+    // Load session/bet data from GitHub API
     let bets: any[] = []
     try {
-      if (token) {
-        const sessionResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/sessions/${date}.json`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github+json'
-          }
-        })
-        
-        if (sessionResponse.ok) {
-          const data = await sessionResponse.json()
-          const content = Buffer.from(data.content, 'base64').toString('utf-8')
-          const session = JSON.parse(content)
-          const sessionData = session.sessions?.[0] || session
-          bets = sessionData.bets?.filter((b: any) => 
-            b.raceId === race.id || b.raceId?.includes(`R${number}`)
-          ) || []
+      const sessionResponse = await fetch(`https://api.github.com/repos/${repo}/contents/data/sessions/${date}.json`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github+json'
         }
-      } else {
-        // Local fallback
-        const { readFileSync } = await import('fs')
-        const { join } = await import('path')
-        const sessionPath = join(process.cwd(), '..', '..', 'data', 'sessions', `${date}.json`)
-        const session = JSON.parse(readFileSync(sessionPath, 'utf-8'))
+      })
+      
+      if (sessionResponse.ok) {
+        const data = await sessionResponse.json()
+        const content = Buffer.from(data.content, 'base64').toString('utf-8')
+        const session = JSON.parse(content)
         const sessionData = session.sessions?.[0] || session
         bets = sessionData.bets?.filter((b: any) => 
           b.raceId === race.id || b.raceId?.includes(`R${number}`)

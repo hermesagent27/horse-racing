@@ -1,81 +1,70 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-// API endpoint to fetch races - tries GitHub first, falls back to local
+// API endpoint to fetch races from GitHub ONLY
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const date = query.date as string || getToday()
   
   const config = useRuntimeConfig()
-  const { githubToken, githubRepo, dataPath } = config
+  const { githubToken, githubRepo } = config
+  
+  if (!githubToken || !githubRepo) {
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'GitHub token/repo not configured'
+    })
+  }
   
   let races: any[] = []
   let bets: any[] = []
   
   try {
-    // Try GitHub first if token exists
-    if (githubToken && githubRepo) {
-      try {
-        const response = await $fetch(
-          `https://api.github.com/repos/${githubRepo}/contents/data/races/${date}.json`,
-          {
-            headers: {
-              Authorization: `Bearer ${githubToken}`,
-              Accept: 'application/vnd.github.v3+json',
-              'User-Agent': 'HorseRacingTracker/1.0',
-            },
-          }
-        )
-        
-        const content = JSON.parse(
-          Buffer.from(response.content, 'base64').toString('utf-8')
-        )
-        races = content.races || content
-      } catch (githubError: any) {
-        console.log('[API] GitHub fetch failed:', githubError.message || githubError.statusCode)
-      }
-    }
-    
-    // Fallback to local file - check multiple possible paths
-    if (races.length === 0) {
-      const possiblePaths = [
-        // nuxt dev: process.cwd() is /frontend, data is at /horse-racing/data
-        join(process.cwd(), '..', 'data', 'races', `${date}.json`),
-        // production: /frontend/.output/server/server.mjs
-        join(process.cwd(), '..', '..', 'data', 'races', `${date}.json`),
-        // direct from file location
-        join('/home/tristan/horse-racing/data/races', `${date}.json`),
-      ]
+    // Load races from GitHub
+    try {
+      const response = await $fetch(
+        `https://api.github.com/repos/${githubRepo}/contents/data/races/${date}.json`,
+        {
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': 'HorseRacingTracker/1.0',
+          },
+        }
+      )
       
-      for (const localPath of possiblePaths) {
-        try {
-          const content = readFileSync(localPath, 'utf-8')
-          const parsed = JSON.parse(content)
-          races = parsed.races || parsed
-          console.log('[API] Loaded from:', localPath, '| Races:', races.length)
-          break
-        } catch (e: any) {
-          // Continue to next path
-        }
-      }
+      const content = JSON.parse(
+        Buffer.from(response.content, 'base64').toString('utf-8')
+      )
+      races = content.races || content
+    } catch (githubError: any) {
+      console.log('[API] Races not found on GitHub:', githubError.statusCode || githubError.message)
     }
     
-    // Also load betting/session data for this date
-    for (const basePath of [join(process.cwd(), '..'), join(process.cwd(), '..', '..'), '/home/tristan/horse-racing/data']) {
-      try {
-        const sessionPath = join(basePath, 'sessions', `${date}.json`)
-        const sessionContent = readFileSync(sessionPath, 'utf-8')
-        const sessionData = JSON.parse(sessionContent)
-        if (sessionData.sessions && Array.isArray(sessionData.sessions)) {
-          bets = sessionData.sessions[0]?.bets || []
-        } else {
-          bets = sessionData.bets || []
+    // Load sessions/bets from GitHub
+    try {
+      const sessionResponse = await $fetch(
+        `https://api.github.com/repos/${githubRepo}/contents/data/sessions/${date}.json`,
+        {
+          headers: {
+            Authorization: `Bearer ${githubToken}`,
+            Accept: 'application/vnd.github.v3+json',
+            'User-Agent': 'HorseRacingTracker/1.0',
+          },
         }
-        console.log('[API] Bets loaded:', bets.length)
-        break
-      } catch (e: any) {
-        // Try next path
+      )
+      
+      const sessionData = JSON.parse(
+        Buffer.from(sessionResponse.content, 'base64').toString('utf-8')
+      )
+      
+      if (sessionData.sessions && Array.isArray(sessionData.sessions)) {
+        bets = sessionData.sessions[0]?.bets || []
+      } else {
+        bets = sessionData.bets || []
       }
+    } catch (sessionError: any) {
+      console.log('[API] Sessions not found on GitHub:', sessionError.statusCode || sessionError.message)
     }
     
     // Merge bet data into races

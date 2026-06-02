@@ -80,7 +80,7 @@ function getTopPicks(race: any) {
   if (!race.entries?.length) return []
   return [...race.entries]
     .sort((a: any, b: any) => (b.confidenceScore || 0) - (a.confidenceScore || 0))
-    .slice(0, 3)
+    .slice(0, 4)
 }
 
 function getRaceStatus(race: any): string {
@@ -88,6 +88,18 @@ function getRaceStatus(race: any): string {
   if (race.status === 'open') return 'Open'
   if (race.status === 'closed') return 'Closed'
   return 'Upcoming'
+}
+
+function getTotalEntries(race: any): number {
+  return race.entries?.length || 0
+}
+
+function getActiveEntries(race: any): number {
+  return race.entries?.filter((e: any) => !e.isScratched).length || 0
+}
+
+function hasScratches(race: any): boolean {
+  return (race.entries?.length || 0) > getActiveEntries(race)
 }
 
 function getRaceBetsSummary(race: any): string {
@@ -246,31 +258,34 @@ function getRaceBetsSummary(race: any): string {
           <!-- Quick Stats Row -->
           <div class="flex items-center justify-between bg-slate-800/50 rounded-lg p-3 mb-4">
             <div class="flex items-center gap-2">
-              <div class="flex -space-x-2">
-                <div
-                  v-for="i in Math.min(race.entries?.length || 0, 4)"
-                  :key="i"
-                  class="w-7 h-7 rounded-full bg-base-300 border-2 border-base-100 flex items-center justify-center text-xs font-bold"
-                >
-                  {{ i }}
-                </div>
-                <span v-if="(race.entries?.length || 0) > 4" class="text-xs text-base-content/60 ml-1">+{{ race.entries.length - 4 }} more</span>
+              <!-- Horse count with scratches indicator -->
+              <div class="text-sm">
+                <span v-if="hasScratches(race)" class="text-base-content/40 line-through mr-1">
+                  {{ getTotalEntries(race) }}
+                </span>
+                <span class="font-semibold text-base-content">
+                  {{ getActiveEntries(race) }}
+                </span>
+                <span class="text-base-content/60 ml-1">horses</span>
+                <span v-if="hasScratches(race)" class="text-error text-xs ml-1">(-{{ getTotalEntries(race) - getActiveEntries(race) }})</span>
               </div>
-              
-              <span class="text-sm text-base-content/60">{{ race.entries?.length || 0 }} entries</span>
             </div>
             
-            <!-- Bet Stats for this race -->
-            <div v-if="race.stats?.totalBets" class="text-right">
-              <div class="text-xs text-base-content/50 mb-0.5">{{ race.stats.totalBets }} bets</div>
-              <div class="text-lg font-bold" :class="race.stats.profit >= 0 ? 'text-success' : 'text-error'">
+            <!-- Bet count + P/L for this race -->
+            <div v-if="getRaceStatus(race) === 'Final'" class="text-right">
+              <div v-if="race.stats?.totalBets" class="text-xs text-base-content/50 mb-0.5">{{ race.stats.totalBets }} bet{{ race.stats.totalBets === 1 ? '' : 's' }}</div>
+              <div v-if="race.stats?.totalBets" class="text-lg font-bold" :class="race.stats.profit >= 0 ? 'text-success' : 'text-error'">
                 {{ race.stats.profit >= 0 ? '+' : '' }}{{ formatCurrency(race.stats.profit) }}
               </div>
+              <div v-else class="text-sm">
+                <span class="text-base-content/60">No bets</span>
+              </div>
             </div>
-            
-            <div v-else class="badge badge-ghost">
-              <Icon name="lucide:circle-dollar-sign" class="w-3 h-3 mr-1" />
-              No bets
+            <div v-else-if="race.stats?.totalBets" class="text-right">
+              <div class="text-xs text-base-content/50">{{ race.stats.totalBets }} bet{{ race.stats.totalBets === 1 ? '' : 's' }} pending</div>
+            </div>
+            <div v-else class="text-right">
+              <span class="text-xs text-base-content/40">No bets</span>
             </div>
           </div>
           

@@ -1,0 +1,237 @@
+[
+  {
+    "id": "RP-2025-05-29-R8",
+    "number": 8,
+    "date": "2025-05-29",
+    "trackCode": "RP",
+    "distance": "350 yards",
+    "surface": "Fast",
+    "type": "Allowance",
+    "purse": 27000,
+    "postTime": "21:45",
+    "status": "final",
+    "results": {
+      "winner": "Wire Tap",
+      "exacta": "4-2",
+      "trifecta": "4-2-6"
+    },
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Fast Lane Runner",
+          "morningLineOdds": "8-1",
+          "jockey": "J. Torres",
+          "trainer": "A. White",
+          "lifetimeStats": { "starts": 15, "wins": 3, "places": 4, "shows": 2 }
+        },
+        "morningLineOdds": "8-1",
+        "confidenceScore": 65
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Livewires Turnpike",
+          "morningLineOdds": "3-5",
+          "jockey": "C. Smith",
+          "trainer": "A. Whitekiller",
+          "lifetimeStats": { "starts": 12, "wins": 8, "places": 2, "shows": 1 }
+        },
+        "morningLineOdds": "3-5",
+        "confidenceScore": 92
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Silver Bullet",
+          "morningLineOdds": "12-1",
+          "jockey": "M. Davis",
+          "trainer": "R. Brown",
+          "lifetimeStats": { "starts": 20, "wins": 4, "places": 3, "shows": 5 }
+        },
+        "morningLineOdds": "12-1",
+        "confidenceScore": 60
+      },
+      {
+        "postPosition": 4,
+        "horse": {
+          "name": "Wire Tap",
+          "morningLineOdds": "7-2",
+          "jockey": "F. Calderon",
+          "trainer": "A. Whitekiller",
+          "lifetimeStats": { "starts": 10, "wins": 5, "places": 3, "shows": 1 }
+        },
+        "morningLineOdds": "7-2",
+        "confidenceScore": 88
+      },
+      {
+        "postPosition": 5,
+        "horse": {
+          "name": "Midnight Dash",
+          "morningLineOdds": "15-1",
+          "jockey": "K. Garcia",
+          "trainer": "L. Martinez",
+          "lifetimeStats": { "starts": 18, "wins": 2, "places": 4, "shows": 3 }
+        },
+        "morningLineOdds": "15-1",
+        "confidenceScore": 55
+      },
+      {
+        "postPosition": 6,
+        "horse": {
+          "name": "Thunder Road",
+          "morningLineOdds": "10-1",
+          "jockey": "B. Johnson",
+          "trainer": "C. Lee",
+          "lifetimeStats": { "starts": 14, "wins": 3, "places": 2, "shows": 4 }
+        },
+        "morningLineOdds": "10-1",
+        "confidenceScore": 70
+      }
+    ]
+  },
+  {
+    "id": "RP-2025-05-29-R9",
+    "number": 9,
+    "date": "2025-05-29",
+    "trackCode": "RP",
+    "distance": "330 yards",
+    "surface": "Fast",
+    "type": "Maiden",
+    "purse": 25500,
+    "postTime": "22:15",
+    "status": "final",
+    "results": {
+      "winner": "Exxquisite",
+      "exacta": "1-8",
+      "trifecta": "1-8-9"
+    },
+    "entries": [
+      {
+        "postPosition": 1,
+        "horse": {
+          "name": "Exxquisite",
+          "morningLineOdds": "4-1",
+          "jockey": "T. Jones",
+          "trainer": "M. Smith",
+          "lifetimeStats": { "starts": 5, "wins": 0, "places": 2, "shows": 1 }
+        },
+        "morningLineOdds": "4-1",
+        "confidenceScore": 70,
+        "notes": "Best last-out SI 90, Flipping Halter"
+      },
+      {
+        "postPosition": 2,
+        "horse": {
+          "name": "Dr a Political Sign",
+          "morningLineOdds": "6-1",
+          "jockey": "R. Williams",
+          "trainer": "K. Brown",
+          "lifetimeStats": { "starts": 8, "wins": 0, "places": 1, "shows": 3 }
+        },
+        "morningLineOdds": "6-1",
+        "confidenceScore": 62,
+        "notes": "Flipping Halter"
+      },
+      {
+        "postPosition": 3,
+        "horse": {
+          "name": "Rookie Mistake",
+          "morningLineOdds": "10-1",
+          "jockey": "A. Johnson",
+          "trainer": "P. Davis",
+          "lifetimeStats": { "starts": 6, "wins": 0, "places": 0, "shows": 2 }
+        },
+        "morningLineOdds": "10-1",
+        "confidenceScore": 58
+      },
+      {
+        "postPosition": 4,
+        "horse": {
+          "name": "The Widowmaker",
+          "morningLineOdds": "8-1",
+          "jockey": "C. Martin",
+          "trainer": "L. Garcia",
+          "lifetimeStats": { "starts": 7, "wins": 0, "places": 2, "shows": 1 }
+        },
+        "morningLineOdds": "8-1",
+        "confidenceScore": 65,
+        "notes": "Flipping Halter"
+      },
+      {
+        "postPosition": 5,
+        "horse": {
+          "name": "Speed Demon",
+          "morningLineOdds": "5-1",
+          "jockey": "J. Lee",
+          "trainer": "S. Wilson",
+          "lifetimeStats": { "starts": 4, "wins": 0, "places": 1, "shows": 1 }
+        },
+        "morningLineOdds": "5-1",
+        "confidenceScore": 72
+      },
+      {
+        "postPosition": 6,
+        "horse": {
+          "name": "Lookin Famous Df",
+          "morningLineOdds": "5-1",
+          "jockey": "M. Rodriguez",
+          "trainer": "D. Taylor",
+          "lifetimeStats": { "starts": 9, "wins": 0, "places": 3, "shows": 2 }
+        },
+        "morningLineOdds": "5-1",
+        "confidenceScore": 68,
+        "notes": "Strong SI 89 last out"
+      },
+      {
+        "postPosition": 7,
+        "horse": {
+          "name": "Northern Lights",
+          "morningLineOdds": "12-1",
+          "jockey": "S. Thompson",
+          "trainer": "R. Anderson",
+          "lifetimeStats": { "starts": 11, "wins": 0, "places": 1, "shows": 2 }
+        },
+        "morningLineOdds": "12-1",
+        "confidenceScore": 55
+      },
+      {
+        "postPosition": 8,
+        "horse": {
+          "name": "Mystery Runner",
+          "morningLineOdds": "7-1",
+          "jockey": "B. Hall",
+          "trainer": "N. Clark",
+          "lifetimeStats": { "starts": 6, "wins": 0, "places": 2, "shows": 0 }
+        },
+        "morningLineOdds": "7-1",
+        "confidenceScore": 64
+      },
+      {
+        "postPosition": 9,
+        "horse": {
+          "name": "First Gentry Lark",
+          "morningLineOdds": "5-2",
+          "jockey": "B. Candanosa",
+          "trainer": "P. Wilson",
+          "lifetimeStats": { "starts": 8, "wins": 2, "places": 2, "shows": 1 }
+        },
+        "morningLineOdds": "5-2",
+        "confidenceScore": 78,
+        "notes": "Hot jockey 14%, previously broke slowly"
+      },
+      {
+        "postPosition": 10,
+        "horse": {
+          "name": "Southern Charm",
+          "morningLineOdds": "15-1",
+          "jockey": "D. White",
+          "trainer": "J. Martinez",
+          "lifetimeStats": { "starts": 12, "wins": 1, "places": 2, "shows": 3 }
+        },
+        "morningLineOdds": "15-1",
+        "confidenceScore": 50
+      }
+    ]
+  }
+]

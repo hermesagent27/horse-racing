@@ -1,29 +1,35 @@
 // Unified date utilities for consistent date handling
-// Works for both server (Node) and client (browser)
+// Uses LOCAL timezone methods to avoid UTC offset issues
 
 /**
- * Get local date string YYYY-MM-DD from an ISO date string
- * Handles isomorphic dates by splitting on 'T' to get local date portion
+ * Format a Date to YYYY-MM-DD in LOCAL timezone
+ * Does NOT use toISOString() which returns UTC
  */
 export function formatDateISO(date: Date | string): string {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  // Use toISOString and split on T to avoid timezone issues
-  return dateObj.toISOString().split('T')[0]
+  const d = typeof date === 'string' ? parseDateISO(date) : new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**
- * Get today's date as YYYY-MM-DD in local timezone
+ * Get today's date as YYYY-MM-DD in LOCAL timezone
  */
 export function getToday(): string {
-  return formatDateISO(new Date())
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
 /**
- * Parse an ISO date string and return a Date object
+ * Parse YYYY-MM-DD string to Date (local timezone)
  */
 export function parseDateISO(dateString: string): Date {
-  // Parse as local date by appending time
-  return new Date(dateString + 'T00:00:00')
+  const [year, month, day] = dateString.split('-').map(Number)
+  return new Date(year, month - 1, day)
 }
 
 /**
@@ -67,6 +73,36 @@ export function isValidDate(dateString: string): boolean {
   const regex = /^\d{4}-\d{2}-\d{2}$/
   if (!regex.test(dateString)) return false
   
-  const date = parseDateISO(dateString)
-  return !isNaN(date.getTime())
+  const [year, month, day] = dateString.split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+  return date.getFullYear() === year && 
+         date.getMonth() === month - 1 && 
+         date.getDate() === day
+}
+
+/**
+ * Get all dates that have race data in history
+ * Returns array of date strings from available data files
+ */
+export function getAvailableDates(): string[] {
+  // These are the dates we have data for
+  // In production, this would scan the data directory
+  return ['2025-05-29', '2025-06-01']
+}
+
+/**
+ * Get the most recent race date (today or prior)
+ */
+export function getMostRecentRaceDate(): string {
+  const dates = getAvailableDates().sort()
+  const today = getToday()
+  
+  // Find the most recent date that isn't in the future
+  for (let i = dates.length - 1; i >= 0; i--) {
+    if (dates[i] <= today) {
+      return dates[i]
+    }
+  }
+  
+  return dates[dates.length - 1] || getToday()
 }

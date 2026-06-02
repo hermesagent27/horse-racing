@@ -98,9 +98,14 @@ export const useRacesStore = defineStore('races', () => {
     }
   }
 
+  const formattedDate = computed(() => {
+    return formatDisplayDate(currentDate.value)
+  })
+
   return {
     races,
     currentDate,
+    formattedDate,
     loading,
     error,
     fetchRaces,

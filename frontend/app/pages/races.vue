@@ -1,186 +1,226 @@
 <script setup lang="ts">
 const store = useRacesStore()
+const { formattedDate, races } = storeToRefs(store)
 
-// Fetch races on mount
-await callOnce(async () => {
-  await store.fetchRaces()
+// Available dates with data
+const availableDates = ['2025-05-29', '2025-06-01']
+
+// Default to most recent race date (not necessarily today)
+const defaultDate = getMostRecentRaceDate()
+
+// Initialize store with default date on client+server
+await useAsyncData('races', async () => {
+  await store.setDate(defaultDate)
+  return store.races
 })
 
-// Computed - use unified date formatter
-const formattedDate = computed(() => {
-  return formatDisplayDate(store.currentDate)
+// Get races for selected date
+const hasRaces = computed(() => races.value.length > 0)
+
+// Date is in history (past races with results)
+const isHistory = computed(() => {
+  return races.value.some(r => r.results || r.status === 'final')
 })
 
-// Get track name
+// Quick stats
+const totalEntries = computed(() => 
+  races.value.reduce((sum, r) => sum + (r.entries?.length || 0), 0)
+)
+
 const trackName = computed(() => {
-  const track = store.races[0]?.trackCode
-  return track === 'RP' ? 'Remington Park' : track || 'Unknown Track'
+  if (!races.value.length) return 'Unknown Track'
+  const code = races.value[0]?.trackCode
+  const tracks: Record<string, string> = {
+    RP: 'Remington Park',
+    LS: 'Lone Star Park',
+    RD: 'Ruidoso Downs',
+    FG: 'Fair Grounds',
+    DD: 'Delta Downs'
+  }
+  return tracks[code] || code
 })
 
-// Confidence color helper
-const getConfidenceColor = (score: number) => {
-  if (score >= 85) return 'badge-success'
-  if (score >= 70) return 'badge-warning'
-  return 'badge-ghost'
+function goToToday() {
+  const today = getToday()
+  // Only go to today if there's data for it, otherwise show most recent
+  if (availableDates.includes(today)) {
+    store.setDate(today)
+  } else {
+    store.setDate(getMostRecentRaceDate())
+  }
 }
 
-// Status badge helper
-const getStatusBadge = (status: string) => {
-  switch (status) {
-    case 'upcoming': return 'badge-info'
-    case 'open': return 'badge-success'
-    case 'closed': return 'badge-warning'
-    case 'final': return 'badge-neutral'
-    default: return 'badge-ghost'
-  }
+function formatRaceTime(time: string): string {
+  if (!time) return 'TBD'
+  const [hours, minutes] = time.split(':')
+  const h = parseInt(hours)
+  const ampm = h >= 12 ? 'PM' : 'AM'
+  const h12 = h % 12 || 12
+  return `${h12}:${minutes} ${ampm}`
+}
+
+function getConfidenceColor(score: number): string {
+  if (score >= 90) return 'bg-error text-error-content'
+  if (score >= 80) return 'bg-warning text-warning-content'
+  if (score >= 70) return 'bg-info text-info-content'
+  return 'bg-base-300 text-base-content'
+}
+
+function getTopPicks(race: any) {
+  if (!race.entries || race.entries.length === 0) return []
+  return [...race.entries]
+    .sort((a: any, b: any) => (b.confidenceScore || 0) - (a.confidenceScore || 0))
+    .slice(0, 3)
+}
+
+function getRaceStatus(race: any): string {
+  if (race.status === 'final' || race.results) return 'Final'
+  if (race.status === 'open') return 'Open'
+  if (race.status === 'closed') return 'Closed'
+  return 'Upcoming'
 }
 </script>
 
 <template>
   <div class="container mx-auto p-4">
-    <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-      <div>
-        <h1 class="text-3xl font-bold">🏇 {{ trackName }}</h1>
-        <p class="text-base-content/70">{{ formattedDate }}</p>
-      </div>
-      
+    <!-- Header with Date Navigation -->
+    <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
       <div class="flex items-center gap-2">
-        <button class="btn btn-ghost btn-sm" @click="store.prevDate">
+        <button class="btn btn-circle btn-ghost btn-sm" @click="store.prevDate()">
           <Icon name="lucide:chevron-left" />
         </button>
         
-        <input
-          v-model="store.currentDate"
-          type="date"
-          class="input input-bordered input-sm"
-          @change="store.fetchRaces(store.currentDate)"
-        />
+        <div class="flex flex-col items-center">
+          <input
+            v-model="store.currentDate"
+            type="date"
+            class="input input-sm input-bordered w-40"
+            @change="(e) => store.setDate((e.target as HTMLInputElement).value)"
+            :min="'2025-01-01'"
+            :max="'2025-12-31'"
+          />
+          <p class="text-sm text-base-content/50 mt-1">
+            {{ formattedDate }}
+          </p>
+        </div>
         
-        <button class="btn btn-ghost btn-sm" @click="store.nextDate">
+        <button class="btn btn-circle btn-ghost btn-sm" @click="store.nextDate()">
           <Icon name="lucide:chevron-right" />
         </button>
+      </div>
+      
+      <div class="flex gap-2">
+        <button class="btn btn-sm btn-ghost" @click="goToToday">
+          <Icon name="lucide:calendar" class="mr-1" />
+          {{ availableDates.includes(getToday()) ? 'Today' : 'Most Recent' }}
+        </button>
         
-        <button class="btn btn-primary btn-sm ml-2" @click="store.today">
-          Today
+        <button class="btn btn-sm btn-primary" @click="$router.push('/upload')">
+          <Icon name="lucide:upload" class="mr-1" />
+          Upload Race Card
         </button>
       </div>
     </div>
     
-    <!-- Stats Summary -->
-    <div class="stats shadow bg-base-100 mb-6">
-      <div class="stat">
-        <div class="stat-title">Races Today</div>
-        <div class="stat-value text-3xl">{{ store.races.length }}</div>
-      </div>
-      
-      <div class="stat">
-        <div class="stat-title">Confirmed Picks</div>
-        <div class="stat-value text-3xl text-success">
-          {{ store.races.filter(r => r.entries.some(e => e.confidenceScore >= 70)).length }}
+    <!-- Track Info -->
+    <div v-if="hasRaces" class="flex items-center gap-2 mb-4">
+      <Icon name="lucide:map-pin" class="text-primary" />
+      <span class="font-semibold">{{ trackName }}</span>
+      <span class="badge badge-sm" :class="isHistory ? 'badge-neutral' : 'badge-success'">
+        {{ isHistory ? 'Historical Data' : 'Live' }}
+      </span>
+      <span class="text-sm text-base-content/50 ml-2">{{ races.length }} races, {{ totalEntries }} entries</span>
+    </div>
+    
+    <div v-if="!hasRaces" class="card bg-base-100 shadow">
+      <div class="card-body text-center py-12">
+        <Icon name="lucide:calendar-x" class="w-16 h-16 mx-auto text-base-content/20 mb-4" />
+        
+        <h2 class="text-xl font-semibold mb-2">No races found for {{ formattedDate }}</h2>
+        
+        <p class="text-base-content/50 mb-4">Upload a race program or view historical dates</p>
+        
+        <div class="flex gap-2 justify-center">
+          <button class="btn btn-primary" @click="$router.push('/upload')">
+            <Icon name="lucide:upload" class="mr-2" />
+            Upload Race Card
+          </button>
+          
+          <button class="btn btn-outline" @click="goToToday">
+            <Icon name="lucide:history" class="mr-2" />
+            View Historical
+          </button>
+        </div>
+        
+        <!-- Available Dates -->
+        <div class="mt-6 text-sm">
+          <p class="text-base-content/50 mb-2">Available dates:</p>
+          <div class="flex flex-wrap gap-2 justify-center">
+            <button
+              v-for="date in availableDates"
+              :key="date"
+              class="badge badge-outline cursor-pointer hover:badge-primary"
+              @click="store.setDate(date)"
+            >
+              {{ formatShortDate(date) }}
+            </button>
+          </div>
         </div>
       </div>
-      
-      <div class="stat">
-        <div class="stat-title">Track Surface</div>
-        <div class="stat-value text-3xl">{{ store.races[0]?.surface || '-' }}</div>
-      </div>
-    </div>
-    
-    <!-- Loading State -->
-    <div v-if="store.loading" class="flex justify-center p-12">
-      <span class="loading loading-spinner loading-lg"></span>
-    </div>
-    
-    <!-- Error State -->
-    <div v-else-if="store.error" class="alert alert-error">
-      <span>{{ store.error }}</span>
-    </div>
-    
-    <!-- No Races State -->
-    <div v-else-if="store.races.length === 0" class="alert alert-info">
-      <span>No races found for {{ formattedDate }}. Select another date or upload a race program.</span>
     </div>
     
     <!-- Race Cards Grid -->
-    <div v-else class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <div
-        v-for="race in store.races"
+        v-for="race in races"
         :key="race.id"
         class="card bg-base-100 shadow hover:shadow-lg transition-shadow cursor-pointer"
+        @click="$router.push(`/race/${race.date}/${race.number}`)"
       >
-        <div class="card-body">
-          <!-- Race Header -->
-          <div class="flex justify-between items-start mb-4">
-            <div>
-              <h2 class="card-title text-2xl">Race {{ race.number }}</h2>
-              <div class="badge badge-outline">{{ race.type }}</div>
+        <div class="card-body p-4">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="badge badge-primary badge-lg">Race {{ race.number }}</span>
+              <span :class="['badge badge-sm', race.status === 'final' ? 'badge-neutral' : 'badge-success']">
+                {{ getRaceStatus(race) }}
+              </span>
             </div>
             
-            <div class="badge" :class="getStatusBadge(race.status)">
-              {{ race.status }}
-            </div>
+            <span class="text-sm text-base-content/50">{{ formatRaceTime(race.postTime) }}</span>
           </div>
           
-          <!-- Race Details -->
-          <div class="grid grid-cols-2 gap-2 text-sm mb-4">
-            <div>
-              <span class="text-base-content/50">Distance:</span>
-              <span class="font-mono">{{ race.distance }}</span>
-            </div>
-            <div>
-              <span class="text-base-content/50">Post Time:</span>
-              <span class="font-mono">{{ race.postTime }}</span>
-            </div>
-            <div>
-              <span class="text-base-content/50">Surface:</span>
-              <span>{{ race.surface }}</span>
-            </div>
-            <div>
-              <span class="text-base-content/50">Purse:</span>
-              <span>${{ race.purse.toLocaleString() }}</span>
-            </div>
+          <h3 class="card-title text-lg">
+            {{ race.distance }} {{ race.type }}
+          </h3>
+          
+          <p class="text-sm text-base-content/60">${{ race.purse?.toLocaleString() }} purse</p>
+          
+          <div class="mt-3 space-y-1">
+            <p v-if="race.surface" class="text-sm">
+              <span class="badge badge-ghost badge-sm">{{ race.surface }}</span>
+            </p>
+            
+            <p class="text-sm text-base-content/50">{{ race.entries?.length || 0 }} entries</p>
           </div>
           
-          <!-- Entries Preview -->
-          <div class="mb-4">
-            <p class="text-sm font-semibold mb-2">Top Entries:</p>
+          <!-- Top Picks Preview -->
+          <div v-if="getTopPicks(race).length" class="mt-3 pt-3 border-t border-base-200">
+            <p class="text-xs text-base-content/50 uppercase mb-2">Top Picks</p>
             
             <div class="space-y-1">
               <div
-                v-for="entry in race.entries.slice(0, 3)"
-                :key="entry.postPosition"
-                class="flex justify-between items-center py-1 px-2 rounded hover:bg-base-200"
+                v-for="(entry, idx) in getTopPicks(race)"
+                :key="entry?.horse?.name"
+                class="flex items-center justify-between text-sm"
               >
-                <div class="flex items-center gap-2">
-                  <span class="badge badge-sm badge-outline">{{ entry.postPosition }}</span>
-                  <span class="font-medium">{{ entry.horse.name }}</span>
-                </div>
+                <span class="flex items-center gap-1">
+                  <span class="badge badge-xs" :class="getConfidenceColor(entry?.confidenceScore || 0)">{{ idx + 1 }}</span>
+                  {{ entry?.horse?.name }}
+                </span>
                 
-                <div class="flex items-center gap-2">
-                  <span class="text-xs text-base-content/70">{{ entry.morningLineOdds }}</span>
-                  <span
-                    v-if="entry.confidenceScore"
-                    class="badge badge-xs"
-                    :class="getConfidenceColor(entry.confidenceScore)"
-                  >
-                    {{ entry.confidenceScore }}
-                  </span>
-                </div>
+                <span class="text-xs text-base-content/50">{{ entry?.morningLineOdds }}</span>
               </div>
             </div>
-            
-            <p v-if="race.entries.length > 3" class="text-xs text-center text-base-content/50 mt-2">
-              +{{ race.entries.length - 3 }} more entries
-            </p>
-          </div>
-          
-          <!-- Card Actions -->
-          <div class="card-actions justify-end">
-            <button class="btn btn-primary btn-sm">
-              View Race
-              <Icon name="lucide:arrow-right" class="ml-1" />
-            </button>
           </div>
         </div>
       </div>

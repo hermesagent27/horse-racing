@@ -256,36 +256,35 @@ function getRaceBetsSummary(race: any): string {
           </div>
           
           <!-- Quick Stats Row -->
-          <div class="flex items-center justify-between bg-slate-800/50 rounded-lg p-3 mb-4">
-            <div class="flex items-center gap-2">
-              <!-- Horse count with scratches indicator -->
-              <div class="text-sm">
-                <span v-if="hasScratches(race)" class="text-base-content/40 line-through mr-1">
-                  {{ getTotalEntries(race) }}
-                </span>
-                <span class="font-semibold text-base-content">
-                  {{ getActiveEntries(race) }}
-                </span>
-                <span class="text-base-content/60 ml-1">horses</span>
-                <span v-if="hasScratches(race)" class="text-error text-xs ml-1">(-{{ getTotalEntries(race) - getActiveEntries(race) }})</span>
-              </div>
+          <div class="flex items-center justify-between bg-slate-800/50 rounded-lg px-3 py-2 mb-4">
+            <!-- Left: Horse count with scratches -->
+            <div class="flex items-center gap-2 text-sm">
+              <span v-if="hasScratches(race)" class="text-base-content/40 line-through">
+                {{ getTotalEntries(race) }}
+              </span>
+              <span class="font-semibold text-base-content">
+                {{ getActiveEntries(race) }}
+              </span>
+              <span class="text-base-content/60">horses</span>
+              <span v-if="hasScratches(race)" class="text-error text-xs">(-{{ getTotalEntries(race) - getActiveEntries(race) }})</span>
             </div>
             
-            <!-- Bet count + P/L for this race -->
-            <div v-if="getRaceStatus(race) === 'Final'" class="text-right">
-              <div v-if="race.stats?.totalBets" class="text-xs text-base-content/50 mb-0.5">{{ race.stats.totalBets }} bet{{ race.stats.totalBets === 1 ? '' : 's' }}</div>
-              <div v-if="race.stats?.totalBets" class="text-lg font-bold" :class="race.stats.profit >= 0 ? 'text-success' : 'text-error'">
-                {{ race.stats.profit >= 0 ? '+' : '' }}{{ formatCurrency(race.stats.profit) }}
-              </div>
-              <div v-else class="text-sm">
-                <span class="text-base-content/60">No bets</span>
-              </div>
-            </div>
-            <div v-else-if="race.stats?.totalBets" class="text-right">
-              <div class="text-xs text-base-content/50">{{ race.stats.totalBets }} bet{{ race.stats.totalBets === 1 ? '' : 's' }} pending</div>
-            </div>
-            <div v-else class="text-right">
-              <span class="text-xs text-base-content/40">No bets</span>
+            <!-- Right: Bet count + P/L inline -->
+            <div class="flex items-center gap-2 text-sm">
+              <!-- Bet count -->
+              <span v-if="race.stats?.totalBets" class="text-base-content/60">
+                {{ race.stats.totalBets }} bet{{ race.stats.totalBets === 1 ? '' : 's' }}
+              </span>
+              <span v-else class="text-base-content/40">No bets</span>
+              
+              <!-- P/L for finals -->
+              <template v-if="getRaceStatus(race) === 'Final'">
+                <span v-if="race.stats?.totalBets">| 
+                  <span :class="race.stats.profit >= 0 ? 'text-success' : 'text-error'">
+                    {{ race.stats.profit >= 0 ? '+' : '' }}{{ formatCurrency(race.stats.profit) }}
+                  </span>
+                </span>
+              </template>
             </div>
           </div>
           

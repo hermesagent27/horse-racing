@@ -2,30 +2,24 @@
 const store = useRacesStore()
 const { formattedDate, races } = storeToRefs(store)
 
-// Available dates with data
+// Available dates with data (match data folder structure)
 const availableDates = ['2025-05-29', '2025-06-01']
 
-// Default to most recent race date (not necessarily today)
+// Default to most recent race date
 const defaultDate = getMostRecentRaceDate()
 
-// Initialize store with default date on client+server
+// Initialize store
 await useAsyncData('races', async () => {
   await store.setDate(defaultDate)
   return store.races
 })
 
-// Get races for selected date
+// Computed
 const hasRaces = computed(() => races.value.length > 0)
-
-// Date is in history (past races with results)
-const isHistory = computed(() => {
-  return races.value.some(r => r.results || r.status === 'final')
-})
-
-// Quick stats
-const totalEntries = computed(() => 
-  races.value.reduce((sum, r) => sum + (r.entries?.length || 0), 0)
-)
+const isHistory = computed(() => races.value.some((r: any) => r.status === 'final' || r.stats?.bets?.length > 0))
+const totalEntries = computed(() => races.value.reduce((sum: number, r: any) => sum + (r.entries?.length || 0), 0))
+const totalBetsForDate = computed(() => races.value.reduce((sum: number, r: any) => sum + (r.stats?.totalBets || 0), 0))
+const totalProfit = computed(() => races.value.reduce((sum: number, r: any) => sum + (r.stats?.profit || 0), 0))
 
 const trackName = computed(() => {
   if (!races.value.length) return 'Unknown Track'
@@ -40,9 +34,9 @@ const trackName = computed(() => {
   return tracks[code] || code
 })
 
+// Functions
 function goToToday() {
   const today = getToday()
-  // Only go to today if there's data for it, otherwise show most recent
   if (availableDates.includes(today)) {
     store.setDate(today)
   } else {
@@ -66,24 +60,44 @@ function getConfidenceColor(score: number): string {
   return 'bg-base-300 text-base-content'
 }
 
+function getProfitColor(profit: number): string {
+  if (profit > 0) return 'text-success'
+  if (profit < 0) return 'text-error'
+  return 'text-base-content'
+}
+
+function formatCurrency(amount: number): string {
+  const abs = Math.abs(amount).toFixed(2)
+  return amount >= 0 ? `$${abs}` : `-$${abs}`
+}
+
 function getTopPicks(race: any) {
-  if (!race.entries || race.entries.length === 0) return []
+  if (!race.entries?.length) return []
   return [...race.entries]
     .sort((a: any, b: any) => (b.confidenceScore || 0) - (a.confidenceScore || 0))
     .slice(0, 3)
 }
 
 function getRaceStatus(race: any): string {
-  if (race.status === 'final' || race.results) return 'Final'
+  if (race.status === 'final' || race.results || race.stats?.bets?.some((b: any) => b.result === 'won' || b.result === 'lost')) return 'Final'
   if (race.status === 'open') return 'Open'
   if (race.status === 'closed') return 'Closed'
   return 'Upcoming'
+}
+
+function getRaceBetsSummary(race: any): string {
+  const stats = race.stats
+  if (!stats || stats.totalBets === 0) return ''
+  
+  const won = stats.bets?.filter((b: any) => b.result === 'won').length || 0
+  const returnStr = stats.profit >= 0 ? `+${formatCurrency(stats.profit)}` : formatCurrency(stats.profit)
+  return `${stats.totalBets} bets, ${won} W | ${returnStr}`
 }
 </script>
 
 <template>
   <div class="container mx-auto p-4">
-    <!-- Header with Date Navigation -->
+    <!-- Header -->
     <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
       <div class="flex items-center gap-2">
         <button class="btn btn-circle btn-ghost btn-sm" @click="store.prevDate()">
@@ -99,9 +113,7 @@ function getRaceStatus(race: any): string {
             :min="'2025-01-01'"
             :max="'2025-12-31'"
           />
-          <p class="text-sm text-base-content/50 mt-1">
-            {{ formattedDate }}
-          </p>
+          <p class="text-sm text-base-content/50 mt-1">{{ formattedDate }}</p>
         </div>
         
         <button class="btn btn-circle btn-ghost btn-sm" @click="store.nextDate()">
@@ -117,44 +129,57 @@ function getRaceStatus(race: any): string {
         
         <button class="btn btn-sm btn-primary" @click="$router.push('/upload')">
           <Icon name="lucide:upload" class="mr-1" />
-          Upload Race Card
+          Upload
         </button>
       </div>
     </div>
     
-    <!-- Track Info -->
-    <div v-if="hasRaces" class="flex items-center gap-2 mb-4">
-      <Icon name="lucide:map-pin" class="text-primary" />
-      <span class="font-semibold">{{ trackName }}</span>
+    <!-- Track Info & Session Stats -->
+    <div v-if="hasRaces" class="flex flex-wrap items-center gap-3 mb-4">
+      <div class="flex items-center gap-2">
+        <Icon name="lucide:map-pin" class="text-primary" />
+        <span class="font-semibold">{{ trackName }}</span>
+      </div>
+      
       <span class="badge badge-sm" :class="isHistory ? 'badge-neutral' : 'badge-success'">
-        {{ isHistory ? 'Historical Data' : 'Live' }}
+        {{ isHistory ? 'Historical' : 'Live' }}
       </span>
-      <span class="text-sm text-base-content/50 ml-2">{{ races.length }} races, {{ totalEntries }} entries</span>
+      
+      <span class="text-sm text-base-content/50">{{ races.length }} races, {{ totalEntries }} entries</span>
+      
+      <!-- Session P/L -->
+      <div v-if="totalBetsForDate > 0" class="ml-auto flex items-center gap-2">
+        <span class="text-sm text-base-content/50">Session:</span>
+        <span class="font-bold" :class="getProfitColor(totalProfit)">
+          {{ totalProfit >= 0 ? '+' : '' }}{{ formatCurrency(totalProfit) }}
+        </span>
+        <span class="text-sm text-base-content/50">({{ totalBetsForDate }} bets)</span>
+      </div>
     </div>
     
+    <!-- No Races State -->
     <div v-if="!hasRaces" class="card bg-base-100 shadow">
       <div class="card-body text-center py-12">
         <Icon name="lucide:calendar-x" class="w-16 h-16 mx-auto text-base-content/20 mb-4" />
         
-        <h2 class="text-xl font-semibold mb-2">No races found for {{ formattedDate }}</h2>
+        <h2 class="text-xl font-semibold mb-2">No races for {{ formattedDate }}</h2>
         
         <p class="text-base-content/50 mb-4">Upload a race program or view historical dates</p>
         
         <div class="flex gap-2 justify-center">
           <button class="btn btn-primary" @click="$router.push('/upload')">
             <Icon name="lucide:upload" class="mr-2" />
-            Upload Race Card
+            Upload
           </button>
           
           <button class="btn btn-outline" @click="goToToday">
             <Icon name="lucide:history" class="mr-2" />
-            View Historical
+            History
           </button>
         </div>
         
-        <!-- Available Dates -->
         <div class="mt-6 text-sm">
-          <p class="text-base-content/50 mb-2">Available dates:</p>
+          <p class="text-base-content/50 mb-2">Available:</p>
           <div class="flex flex-wrap gap-2 justify-center">
             <button
               v-for="date in availableDates"
@@ -174,14 +199,15 @@ function getRaceStatus(race: any): string {
       <div
         v-for="race in races"
         :key="race.id"
-        class="card bg-base-100 shadow hover:shadow-lg transition-shadow cursor-pointer"
+        class="card bg-base-100 shadow hover:shadow-lg transition-all cursor-pointer group"
         @click="$router.push(`/race/${race.date}/${race.number}`)"
       >
         <div class="card-body p-4">
+          <!-- Race Header -->
           <div class="flex items-center justify-between mb-2">
             <div class="flex items-center gap-2">
               <span class="badge badge-primary badge-lg">Race {{ race.number }}</span>
-              <span :class="['badge badge-sm', race.status === 'final' ? 'badge-neutral' : 'badge-success']">
+              <span class="badge badge-sm" :class="getRaceStatus(race) === 'Final' ? 'badge-neutral' : 'badge-success'">
                 {{ getRaceStatus(race) }}
               </span>
             </div>
@@ -189,21 +215,40 @@ function getRaceStatus(race: any): string {
             <span class="text-sm text-base-content/50">{{ formatRaceTime(race.postTime) }}</span>
           </div>
           
-          <h3 class="card-title text-lg">
-            {{ race.distance }} {{ race.type }}
-          </h3>
+          <!-- Race Info -->
+          <h3 class="card-title text-lg">{{ race.distance }} {{ race.type }}</h3>
           
-          <p class="text-sm text-base-content/60">${{ race.purse?.toLocaleString() }} purse</p>
-          
-          <div class="mt-3 space-y-1">
-            <p v-if="race.surface" class="text-sm">
-              <span class="badge badge-ghost badge-sm">{{ race.surface }}</span>
-            </p>
-            
-            <p class="text-sm text-base-content/50">{{ race.entries?.length || 0 }} entries</p>
+          <div class="flex flex-wrap gap-2 mt-1">
+            <span v-if="race.surface" class="badge badge-ghost badge-sm">{{ race.surface }}</span>
+            <span class="text-sm text-base-content/50">${{ race.purse?.toLocaleString() }}</span>
           </div>
           
-          <!-- Top Picks Preview -->
+          <!-- Quick Stats Row -->
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
+            <div class="flex items-center gap-3">
+              <div class="flex -space-x-2">
+                <div
+                  v-for="i in Math.min(race.entries?.length || 0, 4)"
+                  :key="i"
+                  class="w-6 h-6 rounded-full bg-base-300 flex items-center justify-center text-xs border border-base-100"
+                >
+                  {{ i }}
+                </div>
+                <span v-if="(race.entries?.length || 0) > 4" class="text-xs ml-1">+{{ race.entries.length - 4 }}</span>
+              </div>
+              <span class="text-sm text-base-content/50">{{ race.entries?.length || 0 }} entries</span>
+            </div>
+            
+            <!-- Bet Stats for this race -->
+            <div v-if="race.stats?.totalBets" class="text-right">
+              <div class="text-xs text-base-content/50">Bets: {{ race.stats.totalBets }}</div>
+              <div class="text-sm font-bold" :class="getProfitColor(race.stats.profit)">
+                {{ race.stats.profit >= 0 ? '+' : '' }}{{ formatCurrency(race.stats.profit) }}
+              </div>
+            </div>
+          </div>
+          
+          <!-- Top Picks -->
           <div v-if="getTopPicks(race).length" class="mt-3 pt-3 border-t border-base-200">
             <p class="text-xs text-base-content/50 uppercase mb-2">Top Picks</p>
             
@@ -220,6 +265,14 @@ function getRaceStatus(race: any): string {
                 
                 <span class="text-xs text-base-content/50">{{ entry?.morningLineOdds }}</span>
               </div>
+            </div>
+          </div>
+          
+          <!-- View Details Hint -->
+          <div class="mt-3 pt-3 border-t border-base-200 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div class="flex items-center justify-center text-sm text-primary">
+              <Icon name="lucide:arrow-right" class="w-4 h-4 mr-1" />
+              View Details
             </div>
           </div>
         </div>

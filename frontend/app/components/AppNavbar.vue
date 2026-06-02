@@ -143,15 +143,15 @@ watch(() => currentRoute.path, () => {
           <NuxtLink
             :to="item.path"
             class="flex items-center gap-3 px-4 py-3"
-            :class="{ 'active': currentRoute.path === item.path }"
+            :class="{ 'active': currentRoute.path === item.path, 'text-primary font-semibold bg-primary/10': currentRoute.path === item.path }"
             @click="mobileMenuOpen = false"
           >
-            <Icon :name="item.icon" class="w-4 h-4" />
+            <Icon :name="item.icon" class="w-4 h-4" :class="{ 'text-primary': currentRoute.path === item.path }" />
             {{ item.label }}
           </NuxtLink>
         </li>
         
-        <li class="divider my-1"></li>
+        <li class="p-0 h-px my-1"><div class="divider m-0"></div></li>
         
         <li>
           <button

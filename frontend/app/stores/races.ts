@@ -81,6 +81,23 @@ export const useRacesStore = defineStore('races', () => {
     fetchRaces(currentDate.value)
   }
 
+  const saveRaces = async (racesData: Race[]) => {
+    try {
+      await $fetch('/api/races', {
+        method: 'POST',
+        body: {
+          date: currentDate.value,
+          races: racesData
+        }
+      })
+      races.value = racesData
+      return { success: true }
+    } catch (e: any) {
+      error.value = e.message || 'Failed to save races'
+      return { success: false, error: error.value }
+    }
+  }
+
   return {
     races,
     currentDate,
@@ -90,6 +107,7 @@ export const useRacesStore = defineStore('races', () => {
     setDate,
     nextDate,
     prevDate,
-    today
+    today,
+    saveRaces
   }
 })

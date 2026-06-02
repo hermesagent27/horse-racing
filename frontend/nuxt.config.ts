@@ -28,5 +28,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Server-only (never exposed to client)
     authPassword: process.env.AUTH_PASSWORD || 'changeme',
+    githubToken: process.env.GITHUB_TOKEN,
+    githubRepo: process.env.GITHUB_REPO || 'hermesagent27/horse-racing',
   },
 });

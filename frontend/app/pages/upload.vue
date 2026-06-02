@@ -1,22 +1,17 @@
 <script setup lang="ts">
 const file = ref<File | null>(null)
-const trackCode = ref('RP')
-const raceDate = ref(getToday())
 const uploading = ref(false)
-const status = ref<{ type: 'success' | 'error'; message: string } | null>(null)
-
-const tracks = [
-  { code: 'RP', name: 'Remington Park' },
-  { code: 'LS', name: 'Lone Star Park' },
-  { code: 'RP', name: 'Ruidoso Downs' },
-  { code: 'FG', name: 'Fair Grounds' },
-]
+const status = ref<{ type: 'success' | 'error' | 'info'; message: string } | null>(null)
+const extractedRaces = ref<any[]>([])
+const extractedDate = ref('')
+const extractedTrack = ref('')
 
 function handleFileSelect(event: Event) {
   const input = event.target as HTMLInputElement
   if (input.files?.[0]) {
     file.value = input.files[0]
     status.value = null
+    extractedRaces.value = []
   }
 }
 
@@ -26,6 +21,7 @@ function handleDrop(event: DragEvent) {
   if (droppedFile?.type === 'application/pdf') {
     file.value = droppedFile
     status.value = null
+    extractedRaces.value = []
   } else {
     status.value = { type: 'error', message: 'Please drop a PDF file' }
   }
@@ -34,18 +30,19 @@ function handleDrop(event: DragEvent) {
 function clearFile() {
   file.value = null
   status.value = null
+  extractedRaces.value = []
+  extractedDate.value = ''
+  extractedTrack.value = ''
 }
 
-async function uploadPDF() {
+async function processPDF() {
   if (!file.value) return
   
   uploading.value = true
-  status.value = null
+  status.value = { type: 'info', message: 'Extracting races from PDF...' }
   
   const formData = new FormData()
   formData.append('file', file.value)
-  formData.append('trackCode', trackCode.value)
-  formData.append('date', raceDate.value)
   
   try {
     const result = await $fetch('/api/upload', {
@@ -53,15 +50,52 @@ async function uploadPDF() {
       body: formData
     })
     
+    extractedRaces.value = result.races || []
+    extractedDate.value = result.date || ''
+    extractedTrack.value = result.trackCode || 'RP'
+    
     status.value = { 
       type: 'success', 
-      message: `Processed ${result.races} races. Data saved for ${result.date}` 
+      message: `Extracted ${result.races?.length || 0} races` 
     }
-    clearFile()
   } catch (e: any) {
     status.value = { 
       type: 'error', 
       message: e.message || 'Failed to process PDF' 
+    }
+  } finally {
+    uploading.value = false
+  }
+}
+
+async function saveToGitHub() {
+  if (extractedRaces.value.length === 0) return
+  
+  uploading.value = true
+  status.value = { type: 'info', message: 'Saving to GitHub...' }
+  
+  try {
+    const result = await $fetch('/api/races', {
+      method: 'POST',
+      body: {
+        date: extractedDate.value,
+        races: extractedRaces.value
+      }
+    })
+    
+    status.value = { 
+      type: 'success', 
+      message: `Saved ${result.races} races for ${extractedDate.value}` 
+    }
+    
+    // Clear after success
+    setTimeout(() => {
+      clearFile()
+    }, 2000)
+  } catch (e: any) {
+    status.value = { 
+      type: 'error', 
+      message: e.message || 'Failed to save to GitHub' 
     }
   } finally {
     uploading.value = false
@@ -78,6 +112,7 @@ async function uploadPDF() {
     
     <!-- Upload Area -->
     <div
+      v-if="!extractedRaces.length"
       class="card bg-base-100 shadow mb-6"
       @dragover.prevent
       @drop="handleDrop"
@@ -123,42 +158,17 @@ async function uploadPDF() {
           </div>
         </div>
         
-        <!-- Metadata Form -->
-        <div v-if="file" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Track</span>
-            </label>
-            
-            <select v-model="trackCode" class="select select-bordered">
-              <option v-for="track in tracks" :key="track.code" :value="track.code">
-                {{ track.name }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="form-control">
-            <label class="label">
-              <span class="label-text">Race Date</span>
-            </label>
-            
-            <input v-model="raceDate" type="date" class="input input-bordered" />
-          </div>
-        </div>
-        
-        <!-- Upload Button -->
+        <!-- Process Button -->
         <div v-if="file" class="mt-6">
           <button
             class="btn btn-primary w-full"
             :class="{ 'loading': uploading }"
             :disabled="uploading"
-            @click="uploadPDF"
+            @click="processPDF"
           >
-            <Icon v-if="!uploading" name="lucide:upload" class="mr-2" />
-            
-            <span v-if="uploading">Processing PDF...</span>
-            
-            <span v-else>Upload and Extract Races</span>
+            <Icon v-if="!uploading" name="lucide:scan" class="mr-2" />
+            <span v-if="uploading">Extracting...</span>
+            <span v-else>Extract Races from PDF</span>
           </button>
         </div>
         
@@ -166,18 +176,88 @@ async function uploadPDF() {
         <div v-if="status" class="mt-4">
           <div 
             class="alert"
-            :class="status.type === 'success' ? 'alert-success' : 'alert-error'"
+            :class="{
+              'alert-success': status.type === 'success',
+              'alert-error': status.type === 'error',
+              'alert-info': status.type === 'info'
+            }"
           >
-            <Icon 
-              :name="status.type === 'success' ? 'lucide:check-circle' : 'lucide:alert-circle'" 
-              class="w-5 h-5" 
-            />
-            
             <span>{{ status.message }}</span>
           </div>
         </div>
       </div>
     </div>
+    
+    <!-- Extracted Races Preview -->
+    <div v-if="extractedRaces.length" class="card bg-base-100 shadow mb-6">
+      <div class="card-body">
+        <h2 class="card-title">
+          <Icon name="lucide:check-circle" class="w-5 h-5 text-success" />
+          Extracted {{ extractedRaces.length }} Races
+        </h2>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Date</span>
+            </label>
+            <input v-model="extractedDate" type="date" class="input input-bordered" />
+          </div>
+          
+          <div class="form-control">
+            <label class="label">
+              <span class="label-text">Track</span>
+            </label>
+            <input v-model="extractedTrack" class="input input-bordered" placeholder="RP, LS, etc." />
+          </div>
+        </div>
+        
+        <!-- Race List -->
+        <div class="space-y-2 mb-4">
+          <div
+            v-for="race in extractedRaces"
+            :key="race.id"
+            class="flex items-center justify-between p-3 bg-base-200 rounded"
+          >
+            <div class="flex items-center gap-3">
+              <span class="badge badge-primary">Race {{ race.number }}</span>
+              <span>{{ race.distance }}</span>
+              <span class="badge badge-outline">{{ race.type }}</span>
+            </div>
+            
+            <span class="text-sm text-base-content/50">{{ race.entries?.length || 0 }} entries</span>
+          </div>
+        </div>
+        
+        <div class="flex gap-2">
+          <button class="btn btn-ghost" @click="clearFile">Cancel</button>
+          
+          <button
+            class="btn btn-primary flex-1"
+            :class="{ 'loading': uploading }"
+            :disabled="uploading || !extractedDate"
+            @click="saveToGitHub"
+          >
+            <Icon name="lucide:save" class="mr-2" />
+            Save to GitHub
+          </button>
+        </div>
+        
+        <div v-if="status" class="mt-4">
+          <div 
+            class="alert"
+            :class="{
+              'alert-success': status.type === 'success',
+              'alert-error': status.type === 'error',
+              'alert-info': status.type === 'info'
+            }"
+          >
+            <span>{{ status.message }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     
     <!-- Instructions -->
     <div class="card bg-base-100 shadow">
@@ -186,14 +266,10 @@ async function uploadPDF() {
         
         <ol class="list-decimal list-inside space-y-2 text-base-content/70">
           <li>Upload the PDF race program (from track website or email)</li>
-          <li>Select the correct track and race date</li>
-          <li>The system extracts horse entries, odds, and past performances</li>
-          <li>Races appear on the dashboard for analysis and betting</li>
+          <li>The system extracts race date, track, and entries</li>
+          <li>Review and edit extracted data if needed</li>
+          <li>Save to GitHub (persists across sessions)</li>
         </ol>
-        
-        <p class="mt-4 text-sm text-base-content/50">
-          Supports Remington Park, Lone Star, Ruidoso Downs, and more.
-        </p>
       </div>
     </div>
   </div>

@@ -1,6 +1,5 @@
-import { writeFileSync, existsSync, mkdirSync } from 'fs'
-import { join } from 'path'
-import { execSync } from 'child_process'
+// Server-side PDF processing - extracts race data
+import { readMultipartFormData } from 'h3'
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'POST') {
@@ -11,7 +10,6 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Parse multipart form data
     const formData = await readMultipartFormData(event)
     
     if (!formData) {
@@ -21,11 +19,8 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Find file and fields
     const file = formData.find(f => f.name === 'file')
-    const trackCode = formData.find(f => f.name === 'trackCode')?.data?.toString() || 'RP'
-    const date = formData.find(f => f.name === 'date')?.data?.toString() || getToday()
-
+    
     if (!file || !file.data) {
       throw createError({
         statusCode: 400,
@@ -33,50 +28,30 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Save PDF to temp location
-    const tempPdfPath = `/tmp/race-program-${Date.now()}.pdf`
-    writeFileSync(tempPdfPath, file.data)
-
-    // Paths
-    const repoRoot = process.cwd().replace('/frontend', '')
-    const dataDir = join(repoRoot, 'data', 'races')
-    const outputFile = join(dataDir, `${date}.json`)
+    // Parse the PDF text by reading as string and extracting patterns
+    const pdfText = file.data.toString('utf-8').substring(0, 50000) // First 50KB
     
-    // Ensure data directory exists
-    if (!existsSync(dataDir)) {
-      mkdirSync(dataDir, { recursive: true })
-    }
-
-    // Run extraction script
-    const extractScript = join(repoRoot, 'scripts', 'extract-race.py')
-    const pythonCmd = `PYTHONPATH=${join(repoRoot, '.vendor')}:$PYTHONPATH python3 ${extractScript} ${tempPdfPath}`
+    // Extract race information
+    const races = extractRacesFromText(pdfText)
     
-    let extractedText = ''
-    try {
-      extractedText = execSync(pythonCmd, { encoding: 'utf-8', timeout: 30000 })
-    } catch (e: any) {
-      console.error('Extraction error:', e.message)
-      // Continue with manual parsing fallback
-    }
-
-    // Parse extracted text into race data
-    const races = parseExtractedRaces(extractedText, trackCode, date)
+    // Extract date from PDF text
+    const dateMatch = pdfText.match(/(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})/i)
+    const extractedDate = formatDateFromMatch(dateMatch)
     
-    // Save to JSON
-    writeFileSync(outputFile, JSON.stringify(races, null, 2))
-
-    // Cleanup temp file
-    try { require('fs').unlinkSync(tempPdfPath) } catch {}
+    // Try to identify track from text
+    const trackMatch = pdfText.match(/(Remington Park|Lone Star|Ruidoso Downs|Fair Grounds|Delta Downs)/i)
+    const trackCode = trackMatch ? getTrackCode(trackMatch[1]) : 'RP'
 
     return {
       success: true,
-      races: races.length,
-      date,
-      file: outputFile
+      races,
+      date: extractedDate,
+      trackCode,
+      total: races.length
     }
 
   } catch (e: any) {
-    console.error('Upload error:', e)
+    console.error('Upload processing error:', e)
     throw createError({
       statusCode: 500,
       statusMessage: e.message || 'Failed to process PDF'
@@ -84,99 +59,71 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-function parseExtractedRaces(text: string, trackCode: string, date: string): any[] {
-  // Fallback parser - creates sample structure from extracted text
-  // In production, this would parse the actual PDF structure
-  
+function extractRacesFromText(text: string): any[] {
   const races: any[] = []
   const lines = text.split('\n').filter(l => l.trim())
   
-  // Simple heuristic: look for "Race" lines
   let currentRace: any = null
   let raceNum = 0
   
   for (const line of lines) {
     const trimmed = line.trim()
     
-    // Detect race headers (various formats)
-    if (trimmed.match(/Race\s+\d+/i) || trimmed.match(/^\d+\s+\d+Y?\s/)) {
+    // Look for race headers - various patterns
+    // Pattern 1: "Race 1" or "RACE 1"
+    const raceMatch = trimmed.match(/Race\s+(\d+)/i)
+    // Pattern 2: Distance markers like "300 Yards" or "350Y"
+    const distanceMatch = trimmed.match(/(\d+)\s*[Yy]ards?|\d+Y/i)
+    
+    if (raceMatch) {
+      // Save previous race
       if (currentRace) {
         races.push(currentRace)
       }
-      raceNum++
-      currentRace = {
-        id: `${trackCode}-${date}-R${raceNum}`,
-        number: raceNum,
-        date,
-        trackCode,
-        distance: extractDistance(trimmed) || '330 yards',
-        surface: 'Fast',
-        type: 'Unknown',
-        postTime: '',
-        purse: 0,
-        status: 'upcoming',
-        entries: []
+      
+      raceNum = parseInt(raceMatch[1])
+      currentRace = createRaceTemplate(raceNum, lines)
+      
+      // Try to extract distance from same line or next few lines
+      const dist = extractDistance(trimmed) || extractDistanceFromContext(lines, lines.indexOf(line))
+      if (dist) currentRace.distance = dist
+    }
+    
+    // Extract entries (horse names with post positions)
+    if (currentRace && trimmed.match(/^\d+\s+[A-Z]/)) {
+      const entry = parseEntryLine(trimmed, currentRace.entries.length + 1)
+      if (entry) {
+        currentRace.entries.push(entry)
       }
     }
     
-    // Detect entries (simplified)
-    if (currentRace && trimmed.match(/^\d+\s+[A-Z]/)) {
-      const parts = trimmed.split(/\s+/)
-      if (parts.length >= 2) {
-        const postPos = parseInt(parts[0]) || currentRace.entries.length + 1
-        const horseName = parts[1]
-        
-        currentRace.entries.push({
-          postPosition: postPos,
-          horse: {
-            name: horseName,
-            postPosition: postPos,
-            morningLineOdds: extractOdds(trimmed) || '5-1',
-            jockey: 'TBD',
-            trainer: 'TBD',
-            lifetimeStats: { starts: 0, wins: 0, places: 0, shows: 0 }
-          },
-          morningLineOdds: extractOdds(trimmed) || '5-1',
-          confidenceScore: null
-        })
-      }
+    // Extract race type (Maiden, Claiming, Allowance, Stakes)
+    const typeMatch = trimmed.match(/\b(Maiden|Claiming|Allowance|Stakes)\b/i)
+    if (currentRace && typeMatch) {
+      currentRace.type = typeMatch[1]
     }
   }
   
+  // Don't forget the last race
   if (currentRace) {
     races.push(currentRace)
   }
   
-  // If no races detected, create one placeholder
-  if (races.length === 0) {
-    races.push({
-      id: `${trackCode}-${date}-R1`,
-      number: 1,
-      date,
-      trackCode,
-      distance: '330 yards',
-      surface: 'Fast',
-      type: 'Extracted',
-      postTime: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-      purse: 10000,
-      status: 'upcoming',
-      entries: lines.slice(0, 5).map((line, idx) => ({
-        postPosition: idx + 1,
-        horse: {
-          name: line.trim().slice(0, 20) || `Horse ${idx + 1}`,
-          postPosition: idx + 1,
-          morningLineOdds: '5-1',
-          jockey: 'TBD',
-          trainer: 'TBD',
-          lifetimeStats: { starts: 0, wins: 0, places: 0, shows: 0 }
-        },
-        morningLineOdds: '5-1',
-        confidenceScore: null
-      }))
-    })
-  }
-  
   return races
+}
+
+function createRaceTemplate(number: number, allLines: string[]): any {
+  return {
+    id: `R${number}`,
+    number,
+    distance: '330 yards', // Default, will be overridden if found
+    surface: 'Fast',
+    type: 'Unknown',
+    postTime: '',
+    purse: 10000,
+    status: 'upcoming',
+    entries: []
+  }
 }
 
 function extractDistance(line: string): string | null {
@@ -184,7 +131,84 @@ function extractDistance(line: string): string | null {
   return match ? `${match[1]} yards` : null
 }
 
-function extractOdds(line: string): string | null {
-  const match = line.match(/(\d+[-/](?:2|5|1))(?:\s|$)/)
-  return match ? match[1] : null
+function extractDistanceFromContext(lines: string[], startIdx: number): string | null {
+  // Check next 3 lines for distance
+  for (let i = startIdx; i < Math.min(startIdx + 3, lines.length); i++) {
+    const dist = extractDistance(lines[i])
+    if (dist) return dist
+  }
+  return null
+}
+
+function parseEntryLine(line: string, postPosition: number): any | null {
+  const parts = line.split(/\s+/).filter(p => p)
+  if (parts.length < 2) return null
+  
+  // First part should be post position number
+  const postMatch = parts[0].match(/^(\d+)$/)
+  if (!postMatch) return null
+  
+  const post = parseInt(postMatch[1])
+  
+  // Look for horse name (usually uppercase words)
+  const nameParts: string[] = []
+  for (let i = 1; i < parts.length; i++) {
+    const part = parts[i]
+    // Stop at odds or other markers
+    if (part.match(/^\d+[/-]/)) break
+    if (part.match(/^[A-Z][a-zA-Z]+$/)) {
+      nameParts.push(part)
+    }
+    if (nameParts.length >= 3) break // Max 3 words for name
+  }
+  
+  if (nameParts.length === 0) return null
+  
+  // Look for odds in the line
+  const oddsMatch = line.match(/(\d+[/-]\d+|\d+-1)/)
+  const odds = oddsMatch ? oddsMatch[1] : '5-1'
+  
+  return {
+    postPosition: post,
+    horse: {
+      name: nameParts.join(' '),
+      postPosition: post,
+      morningLineOdds: odds,
+      jockey: 'TBD',
+      trainer: 'TBD',
+      lifetimeStats: { starts: 0, wins: 0, places: 0, shows: 0 }
+    },
+    morningLineOdds: odds,
+    confidenceScore: null
+  }
+}
+
+function formatDateFromMatch(match: RegExpMatchArray | null): string {
+  if (!match) return new Date().toISOString().split('T')[0]
+  
+  const months: Record<string, number> = {
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6,
+    july: 7, august: 8, september: 9, october: 10, november: 11, december: 12
+  }
+  
+  const month = months[match[1].toLowerCase()]
+  const day = parseInt(match[2])
+  const year = parseInt(match[3])
+  
+  if (!month) return new Date().toISOString().split('T')[0]
+  
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function getTrackCode(trackName: string): string {
+  const tracks: Record<string, string> = {
+    'remington park': 'RP',
+    'lone star': 'LS',
+    'lone star park': 'LS',
+    'ruidoso downs': 'RD',
+    'fair grounds': 'FG',
+    'delta downs': 'DD'
+  }
+  
+  return tracks[trackName.toLowerCase()] || 'RP'
 }

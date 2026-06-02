@@ -1,0 +1,81 @@
+{
+  "sessions": [
+    {
+      "id": "RP-2025-05-29",
+      "date": "2025-05-29",
+      "trackCode": "RP",
+      "bankrollStart": 100,
+      "bankrollEnd": 120,
+      "bets": [
+        {
+          "id": "bet-20250529-1",
+          "raceId": "RP-2025-05-29-R8",
+          "placedAt": "2025-05-29T22:00:00Z",
+          "selections": [
+            { "postPosition": 2, "horseName": "Livewires Turnpike", "confidence": 92, "notes": "Top speed figure" },
+            { "postPosition": 4, "horseName": "Wire Tap", "confidence": 88, "notes": "Hot connections" }
+          ],
+          "amount": 10,
+          "type": "EXACTA_BOX",
+          "oddsTaken": "14-1",
+          "potentialPayout": 140,
+          "actualPayout": 28,
+          "result": "won",
+          "notes": "4-2 exacta paid $28"
+        },
+        {
+          "id": "bet-20250529-2", 
+          "raceId": "RP-2025-05-29-R8",
+          "placedAt": "2025-05-29T22:05:00Z",
+          "selections": [
+            { "postPosition": 4, "horseName": "Wire Tap", "confidence": 88, "notes": "Hot connections" }
+          ],
+          "amount": 5,
+          "type": "WIN",
+          "oddsTaken": "3-1",
+          "potentialPayout": 15,
+          "actualPayout": 24,
+          "result": "won",
+          "notes": "Wire Tap won"
+        },
+        {
+          "id": "bet-20250529-3",
+          "raceId": "RP-2025-05-29-R9",
+          "placedAt": "2025-05-29T22:30:00Z",
+          "selections": [
+            { "postPosition": 9, "horseName": "First Gentry Lark", "confidence": 78, "notes": "Hot jockey" }
+          ],
+          "amount": 10,
+          "type": "WIN",
+          "oddsTaken": "2-1",
+          "potentialPayout": 20,
+          "actualPayout": 0,
+          "result": "lost",
+          "notes": "Missed winner Exxquisite"
+        }
+      ],
+      "racesAnalyzed": [
+        {
+          "raceId": "RP-2025-05-29-R8",
+          "analyzedAt": "2025-05-29T21:45:00Z",
+          "selections": [
+            { "entry": { "postPosition": 2, "horse": { "name": "Livewires Turnpike" }, "morningLineOdds": "3-5" }, "rank": 1, "confidence": 92, "reasoning": ["Best speed figure 102", "Proven class"] },
+            { "entry": { "postPosition": 4, "horse": { "name": "Wire Tap" }, "morningLineOdds": "7-2" }, "rank": 2, "confidence": 88, "reasoning": ["Hot jockey 17%", "Hot trainer 15%", "Strong SI 97"] }
+          ],
+          "confidence": 90,
+          "notes": "Exacta box recommended"
+        },
+        {
+          "raceId": "RP-2025-05-29-R9",
+          "analyzedAt": "2025-05-29T22:15:00Z",
+          "selections": [
+            { "entry": { "postPosition": 9, "horse": { "name": "First Gentry Lark" }, "morningLineOdds": "5-2" }, "rank": 1, "confidence": 78, "reasoning": ["Hot jockey candanosa 14%"] },
+            { "entry": { "postPosition": 1, "horse": { "name": "Exxquisite" }, "morningLineOdds": "4-1" }, "rank": 2, "confidence": 70, "reasoning": ["Best last-out SI 90", "Equipment change"] }
+          ],
+          "confidence": 75,
+          "notes": "Pattern: weighted last-race SI for 330Y"
+        }
+      ]
+    }
+  ]
+}

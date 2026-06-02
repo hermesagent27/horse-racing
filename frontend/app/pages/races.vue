@@ -3,7 +3,7 @@ const store = useRacesStore()
 const { formattedDate, races } = storeToRefs(store)
 
 // Available dates with data (match data folder structure)
-const availableDates = ['2025-05-29', '2025-06-01']
+const availableDates = ['2025-05-29']
 
 // Default to most recent race date
 const defaultDate = getMostRecentRaceDate()
@@ -195,84 +195,117 @@ function getRaceBetsSummary(race: any): string {
     </div>
     
     <!-- Race Cards Grid -->
-    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div
         v-for="race in races"
         :key="race.id"
-        class="card bg-base-100 shadow hover:shadow-lg transition-all cursor-pointer group"
+        class="card bg-base-100 border-2 border-base-200 hover:border-primary hover:shadow-xl transition-all cursor-pointer group"
         @click="$router.push(`/race/${race.date}/${race.number}`)"
       >
-        <div class="card-body p-4">
+        <div class="card-body p-5">
           <!-- Race Header -->
-          <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center justify-between mb-3 border-b border-base-200 pb-3">
             <div class="flex items-center gap-2">
-              <span class="badge badge-primary badge-lg">Race {{ race.number }}</span>
+              <div class="badge badge-primary badge-lg">Race {{ race.number }}</div>
               <span class="badge badge-sm" :class="getRaceStatus(race) === 'Final' ? 'badge-neutral' : 'badge-success'">
                 {{ getRaceStatus(race) }}
               </span>
             </div>
             
-            <span class="text-sm text-base-content/50">{{ formatRaceTime(race.postTime) }}</span>
+            <div class="flex items-center text-base-content/50">
+              <Icon name="lucide:clock" class="w-4 h-4 mr-1" />
+              <span class="text-sm font-medium">{{ formatRaceTime(race.postTime) }}</span>
+            </div>
           </div>
           
           <!-- Race Info -->
-          <h3 class="card-title text-lg">{{ race.distance }} {{ race.type }}</h3>
+          <div class="flex items-baseline gap-2 mb-4">
+            <span class="text-2xl font-bold text-primary">{{ race.distance }}</span>
+            <span class="text-lg font-medium">{{ race.type }}</span>
+          </div>
           
-          <div class="flex flex-wrap gap-2 mt-1">
-            <span v-if="race.surface" class="badge badge-ghost badge-sm">{{ race.surface }}</span>
-            <span class="text-sm text-base-content/50">${{ race.purse?.toLocaleString() }}</span>
+          <div class="flex flex-wrap gap-2 mb-4">
+            <span v-if="race.surface" class="badge badge-outline badge-sm">
+              <Icon name="lucide:grip-vertical" class="w-3 h-3 mr-1" />
+              {{ race.surface }}
+            </span>
+            <span class="badge badge-ghost badge-sm">
+              <Icon name="lucide:banknote" class="w-3 h-3 mr-1" />
+              ${{ race.purse?.toLocaleString() }}
+            </span>
           </div>
           
           <!-- Quick Stats Row -->
-          <div class="flex items-center justify-between mt-3 pt-3 border-t border-base-200">
-            <div class="flex items-center gap-3">
+          <div class="flex items-center justify-between bg-base-200/50 rounded-lg p-3 mb-4">
+            <div class="flex items-center gap-2">
               <div class="flex -space-x-2">
                 <div
                   v-for="i in Math.min(race.entries?.length || 0, 4)"
                   :key="i"
-                  class="w-6 h-6 rounded-full bg-base-300 flex items-center justify-center text-xs border border-base-100"
+                  class="w-7 h-7 rounded-full bg-base-300 border-2 border-base-100 flex items-center justify-center text-xs font-bold"
                 >
                   {{ i }}
                 </div>
-                <span v-if="(race.entries?.length || 0) > 4" class="text-xs ml-1">+{{ race.entries.length - 4 }}</span>
+                <span v-if="(race.entries?.length || 0) > 4" class="text-xs text-base-content/60 ml-1">+{{ race.entries.length - 4 }} more</span>
               </div>
-              <span class="text-sm text-base-content/50">{{ race.entries?.length || 0 }} entries</span>
+              
+              <span class="text-sm text-base-content/60">{{ race.entries?.length || 0 }} entries</span>
             </div>
             
             <!-- Bet Stats for this race -->
             <div v-if="race.stats?.totalBets" class="text-right">
-              <div class="text-xs text-base-content/50">Bets: {{ race.stats.totalBets }}</div>
-              <div class="text-sm font-bold" :class="getProfitColor(race.stats.profit)">
+              <div class="text-xs text-base-content/50 mb-0.5">{{ race.stats.totalBets }} bets</div>
+              <div class="text-lg font-bold" :class="race.stats.profit >= 0 ? 'text-success' : 'text-error'">
                 {{ race.stats.profit >= 0 ? '+' : '' }}{{ formatCurrency(race.stats.profit) }}
               </div>
             </div>
+            
+            <div v-else class="badge badge-ghost">
+              <Icon name="lucide:circle-dollar-sign" class="w-3 h-3 mr-1" />
+              No bets
+            </div>
           </div>
           
-          <!-- Top Picks -->
-          <div v-if="getTopPicks(race).length" class="mt-3 pt-3 border-t border-base-200">
-            <p class="text-xs text-base-content/50 uppercase mb-2">Top Picks</p>
+          <!-- Top Picks Section -->
+          <div v-if="getTopPicks(race).length" class="bg-base-200/30 rounded-lg p-3 mb-4">
+            <div class="flex items-center gap-2 mb-2">
+              <Icon name="lucide:star" class="w-4 h-4 text-warning" />
+              <span class="text-xs font-semibold text-base-content/70 uppercase tracking-wide">Top Picks</span>
+            </div>
             
-            <div class="space-y-1">
+            <div class="space-y-1.5">
               <div
                 v-for="(entry, idx) in getTopPicks(race)"
                 :key="entry?.horse?.name"
-                class="flex items-center justify-between text-sm"
+                class="flex items-center justify-between text-sm px-2 py-1 rounded hover:bg-base-200/50 transition-colors"
               >
-                <span class="flex items-center gap-1">
-                  <span class="badge badge-xs" :class="getConfidenceColor(entry?.confidenceScore || 0)">{{ idx + 1 }}</span>
-                  {{ entry?.horse?.name }}
-                </span>
+                <div class="flex items-center gap-2">
+                  <div 
+                    class="w-5 h-5 rounded flex items-center justify-center text-xs font-bold"
+                    :class="idx === 0 ? 'bg-warning text-warning-content' : 'bg-base-300 text-base-content'"
+                  >
+                    {{ idx + 1 }}
+                  </div>
+                  <span class="font-medium">{{ entry?.horse?.name }}</span>
+                </div>
                 
-                <span class="text-xs text-base-content/50">{{ entry?.morningLineOdds }}</span>
+                <div class="flex items-center gap-2">
+                  <span v-if="entry?.confidenceScore" class="text-xs font-bold text-primary">{{ entry.confidenceScore }}%</span>
+                  <span class="text-xs text-base-content/50">{{ entry?.morningLineOdds }}</span>
+                </div>
               </div>
             </div>
           </div>
           
-          <!-- View Details Hint -->
-          <div class="mt-3 pt-3 border-t border-base-200 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div class="flex items-center justify-center text-sm text-primary">
-              <Icon name="lucide:arrow-right" class="w-4 h-4 mr-1" />
-              View Details
+          <!-- Action Footer -->
+          <div class="flex items-center justify-between pt-2 border-t border-base-200">
+            <div class="text-sm text-base-content/50">
+              <span class="hidden sm:inline">{{ race.trackCode }}</span>
+            </div>
+            
+            <div class="flex items-center text-primary font-medium text-sm group-hover:underline">
+              View Race Details
+              <Icon name="lucide:arrow-right" class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" />
             </div>
           </div>
         </div>

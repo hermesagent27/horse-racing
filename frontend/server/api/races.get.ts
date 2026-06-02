@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
   const date = query.date as string || getToday()
   
   const config = useRuntimeConfig()
-  const { githubToken, githubRepo } = config
+  const { githubToken, githubRepo, dataPath } = config
   
   let races: any[] = []
   let bets: any[] = []
@@ -30,39 +30,52 @@ export default defineEventHandler(async (event) => {
         const content = JSON.parse(
           Buffer.from(response.content, 'base64').toString('utf-8')
         )
-        races = content.races || content // Handle both formats
+        races = content.races || content
       } catch (githubError: any) {
-        if (githubError.statusCode !== 404) {
-          console.log('[API] GitHub fetch failed, trying local:', githubError.message)
+        console.log('[API] GitHub fetch failed:', githubError.message || githubError.statusCode)
+      }
+    }
+    
+    // Fallback to local file - check multiple possible paths
+    if (races.length === 0) {
+      const possiblePaths = [
+        // nuxt dev: process.cwd() is /frontend, data is at /horse-racing/data
+        join(process.cwd(), '..', 'data', 'races', `${date}.json`),
+        // production: /frontend/.output/server/server.mjs
+        join(process.cwd(), '..', '..', 'data', 'races', `${date}.json`),
+        // direct from file location
+        join('/home/tristan/horse-racing/data/races', `${date}.json`),
+      ]
+      
+      for (const localPath of possiblePaths) {
+        try {
+          const content = readFileSync(localPath, 'utf-8')
+          const parsed = JSON.parse(content)
+          races = parsed.races || parsed
+          console.log('[API] Loaded from:', localPath, '| Races:', races.length)
+          break
+        } catch (e: any) {
+          // Continue to next path
         }
       }
     }
     
-    // Fallback to local file
-    if (races.length === 0) {
-      try {
-        const localPath = join(process.cwd(), '..', '..', 'data', 'races', `${date}.json`)
-        const content = readFileSync(localPath, 'utf-8')
-        const parsed = JSON.parse(content)
-        races = parsed.races || parsed
-      } catch (localError) {
-        // No local file either
-      }
-    }
-    
     // Also load betting/session data for this date
-    try {
-      const sessionPath = join(process.cwd(), '..', '..', 'data', 'sessions', `${date}.json`)
-      const sessionContent = readFileSync(sessionPath, 'utf-8')
-      const sessionData = JSON.parse(sessionContent)
-      // Handle nested sessions structure
-      if (sessionData.sessions && Array.isArray(sessionData.sessions)) {
-        bets = sessionData.sessions[0]?.bets || []
-      } else {
-        bets = sessionData.bets || []
+    for (const basePath of [join(process.cwd(), '..'), join(process.cwd(), '..', '..'), '/home/tristan/horse-racing/data']) {
+      try {
+        const sessionPath = join(basePath, 'sessions', `${date}.json`)
+        const sessionContent = readFileSync(sessionPath, 'utf-8')
+        const sessionData = JSON.parse(sessionContent)
+        if (sessionData.sessions && Array.isArray(sessionData.sessions)) {
+          bets = sessionData.sessions[0]?.bets || []
+        } else {
+          bets = sessionData.bets || []
+        }
+        console.log('[API] Bets loaded:', bets.length)
+        break
+      } catch (e: any) {
+        // Try next path
       }
-    } catch (sessionError) {
-      // No session data
     }
     
     // Merge bet data into races

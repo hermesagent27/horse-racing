@@ -96,7 +96,7 @@ export default defineEventHandler(async (event) => {
       method: 'PUT',
       headers,
       body: {
-        message: `Update bets for race ${raceNumber} on ${date}`
+        message: `Update bets for race ${raceNumber} on ${date}`,
         content: updatedContent,
         sha: existingSha,
       },

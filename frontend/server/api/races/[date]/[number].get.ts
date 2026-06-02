@@ -22,18 +22,15 @@ export default defineEventHandler(async (event) => {
       const content = readFileSync(raceFilePath, 'utf-8')
       const parsed = JSON.parse(content)
       races = parsed.races || parsed
-    } catch {
-      // Try sample data if no file
-      const samplePath = join(process.cwd(), '..', '..', 'data', 'races', '2025-06-01.json')
-      const content = readFileSync(samplePath, 'utf-8')
-      const parsed = JSON.parse(content)
-      races = parsed.races || parsed
-      // Filter for the requested date/number
-      races = races.filter((r: any) => r.date === date && r.number === number)
+    } catch (err) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: `No race data found for ${date}`
+      })
     }
     
     // Find specific race
-    const race: any = races.find((r: any) => r.number === number) || races[number - 1]
+    const race: any = races.find((r: any) => r.number === number)
     
     if (!race) {
       throw createError({
@@ -42,16 +39,17 @@ export default defineEventHandler(async (event) => {
       })
     }
     
-    // Load bets for this race
+    // Load bets for this race from session data
     let bets: any[] = []
     try {
       const sessionPath = join(process.cwd(), '..', '..', 'data', 'sessions', `${date}.json`)
       const session = JSON.parse(readFileSync(sessionPath, 'utf-8'))
-      bets = session.bets?.filter((b: any) => 
+      const sessionData = session.sessions?.[0] || session
+      bets = sessionData.bets?.filter((b: any) => 
         b.raceId === race.id || b.raceId?.includes(`R${number}`)
       ) || []
     } catch {
-      // No session data
+      // No session data - that's okay
     }
     
     // Calculate stats
@@ -60,19 +58,24 @@ export default defineEventHandler(async (event) => {
     const totalReturned = bets
       .filter((b: any) => b.result === 'won')
       .reduce((sum: number, b: any) => sum + (b.actualPayout || 0), 0)
+    const profit = totalReturned - totalWagered
     
     return {
       ...race,
+      date,
       stats: {
         totalBets,
         totalWagered,
         totalReturned,
-        profit: totalReturned - totalWagered,
+        profit,
         bets
       }
     }
     
   } catch (error: any) {
+    // If it's already a createError, re-throw it
+    if (error.statusCode) throw error
+    
     console.error('[API] Error fetching race:', error)
     throw createError({
       statusCode: 500,

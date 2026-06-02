@@ -151,7 +151,7 @@ watch(() => currentRoute.path, () => {
           </NuxtLink>
         </li>
         
-        <li class="p-0 h-px my-1"><div class="divider m-0"></div></li>
+        <li class="-mx-2 list-none"><div class="divider"></div></li>
         
         <li>
           <button

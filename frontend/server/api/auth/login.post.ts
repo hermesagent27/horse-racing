@@ -18,12 +18,12 @@ export default defineEventHandler(async (event) => {
     })
   }
   
-  // Set auth cookie (HTTP-only, secure)
+  // Set auth cookie with longer expiration (30 days)
   setCookie(event, 'auth_token', 'authenticated', {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    maxAge: 60 * 60 * 24 * 7 // 7 days
+    secure: true, // Always secure in production
+    sameSite: 'lax', // Changed from strict to lax for better UX
+    maxAge: 60 * 60 * 24 * 30 // 30 days
   })
   
   return { success: true }

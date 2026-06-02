@@ -1,6 +1,34 @@
 @import "tailwindcss";
+
 @plugin "daisyui" {
   themes:
     light --default,
     dark --prefersdark;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Custom background utilities for better distinction */
+  .bg-slate-800\/50 {
+    background-color: rgba(30, 41, 59, 0.5);
+  }
+  .bg-slate-800\/30 {
+    background-color: rgba(30, 41, 59, 0.3);
+  }
+  .bg-slate-700\/50 {
+    background-color: rgba(51, 65, 85, 0.5);
+  }
+}
+
+@layer components {
+  /* Border utilities */
+  .border-slate-600 {
+    border-color: rgb(71, 85, 105);
+  }
+  .border-slate-700 {
+    border-color: rgb(51, 65, 85);
+  }
 }

@@ -103,9 +103,12 @@ async function saveToGitHub() {
 }
 </script>
 
-<template>
-  <div class="container mx-auto p-4 max-w-2xl">
-    <h1 class="text-3xl font-bold mb-6">
+|<template>
+|  <div class="container mx-auto p-4 max-w-2xl">
+|    <!-- Breadcrumbs -->
+|    <AppBreadcrumbs :items="[{ label: 'Home', path: '/' }, { label: 'Upload' }]" />
+|    
+|    <h1 class="text-3xl font-bold mb-6">
       <Icon name="lucide:upload" class="w-8 h-8 inline mr-2" />
       Upload Race Program
     </h1>
@@ -140,7 +143,7 @@ async function saveToGitHub() {
         </div>
         
         <!-- Selected File -->
-        <div v-else class="bg-base-200 rounded-lg p-4">
+        <div v-else class="bg-slate-800/50 border border-slate-700 rounded-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <Icon name="lucide:file-text" class="w-8 h-8 text-primary" />
@@ -217,7 +220,7 @@ async function saveToGitHub() {
           <div
             v-for="race in extractedRaces"
             :key="race.id"
-            class="flex items-center justify-between p-3 bg-base-200 rounded"
+            class="flex items-center justify-between p-3 bg-slate-800/50 border border-slate-700 rounded"
           >
             <div class="flex items-center gap-3">
               <span class="badge badge-primary">Race {{ race.number }}</span>

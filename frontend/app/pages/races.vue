@@ -34,6 +34,11 @@ const trackName = computed(() => {
   return tracks[code] || code
 })
 
+const breadcrumbs = [
+  { label: 'Home', path: '/' },
+  { label: 'Races' }
+]
+
 // Functions
 function goToToday() {
   const today = getToday()
@@ -97,6 +102,9 @@ function getRaceBetsSummary(race: any): string {
 
 <template>
   <div class="container mx-auto p-4">
+    <!-- Breadcrumbs -->
+    <AppBreadcrumbs :items="breadcrumbs" />
+    
     <!-- Header -->
     <div class="flex flex-col sm:flex-row items-center justify-between mb-6 gap-4">
       <div class="flex items-center gap-2">
@@ -236,7 +244,7 @@ function getRaceBetsSummary(race: any): string {
           </div>
           
           <!-- Quick Stats Row -->
-          <div class="flex items-center justify-between bg-base-200/50 rounded-lg p-3 mb-4">
+          <div class="flex items-center justify-between bg-slate-800/50 rounded-lg p-3 mb-4">
             <div class="flex items-center gap-2">
               <div class="flex -space-x-2">
                 <div
@@ -267,7 +275,7 @@ function getRaceBetsSummary(race: any): string {
           </div>
           
           <!-- Top Picks Section -->
-          <div v-if="getTopPicks(race).length" class="bg-base-200/30 rounded-lg p-3 mb-4">
+          <div v-if="getTopPicks(race).length" class="bg-slate-800/30 rounded-lg p-3 mb-4">
             <div class="flex items-center gap-2 mb-2">
               <Icon name="lucide:star" class="w-4 h-4 text-warning" />
               <span class="text-xs font-semibold text-base-content/70 uppercase tracking-wide">Top Picks</span>

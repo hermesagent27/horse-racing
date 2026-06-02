@@ -7,6 +7,13 @@ const { data: race, pending, error } = await useFetch(`/api/races/${date}/${numb
   key: `race-${date}-${number}`
 })
 
+// Breadcrumbs
+const breadcrumbs = computed(() => [
+  { label: 'Home', path: '/' },
+  { label: 'Races', path: '/races' },
+  { label: `Race ${race.value?.number || number}` }
+])
+
 // Computed
 const topPicks = computed(() => {
   if (!race.value?.entries?.length) return []
@@ -49,6 +56,9 @@ function getResultForEntry(entry: any): string {
 
 <template>
   <div class="container mx-auto p-4">
+    <!-- Breadcrumbs -->
+    <AppBreadcrumbs :items="breadcrumbs" />
+    
     <!-- Loading -->
     <div v-if="pending" class="flex justify-center py-12">
       <span class="loading loading-spinner loading-lg"></span>
@@ -86,7 +96,7 @@ function getResultForEntry(entry: any): string {
         </div>
         
         <!-- Betting Stats -->
-        <div v-if="hasBets" class="card bg-base-100 shadow p-4">
+        <div v-if="hasBets" class="card bg-slate-800/50 border border-slate-700 p-4 min-w-[200px]">
           <div class="text-sm text-base-content/50 mb-1">Your Results</div>
           
           <div class="flex items-center gap-4">
@@ -104,7 +114,7 @@ function getResultForEntry(entry: any): string {
           </div>
         </div>
         
-        <div v-else class="card bg-base-100 shadow p-4">
+        <div v-else class="card bg-slate-800/50 border border-slate-700 p-4">
           <div class="text-sm text-base-content/50 mb-2">No bets placed</div>
           
           <button class="btn btn-primary btn-sm" @click="$router.push('/bets/new')">
@@ -118,14 +128,14 @@ function getResultForEntry(entry: any): string {
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Left: Entries -->
         <div class="lg:col-span-2">
-          <div class="card bg-base-100 shadow">
+          <div class="card bg-slate-800/50 border border-slate-700">
             <div class="card-body">
               <h2 class="card-title"><Icon name="lucide:list" /> Entries</h2>
               
               <div class="overflow-x-auto">
                 <table class="table">
                   <thead>
-                    <tr>
+                    <tr class="border-b border-slate-600">
                       <th>Post</th>
                       <th>Horse</th>
                       <th>ML Odds</th>
@@ -139,7 +149,7 @@ function getResultForEntry(entry: any): string {
                     <tr
                       v-for="entry in race.entries"
                       :key="entry.postPosition"
-                      :class="{ 'bg-primary/10': topPicks.some(p => p.postPosition === entry.postPosition) }"
+                      :class="{ 'bg-slate-700/50': topPicks.some(p => p.postPosition === entry.postPosition) }"
                     >
                       <td class="font-mono">{{ entry.postPosition }}</td>
                       
@@ -183,7 +193,7 @@ function getResultForEntry(entry: any): string {
         <!-- Right: Analysis & Bets -->
         <div class="space-y-4">
           <!-- Top Picks -->
-          <div class="card bg-base-100 shadow">
+          <div class="card bg-slate-800/50 border border-slate-700">
             <div class="card-body">
               <h3 class="card-title text-lg"><Icon name="lucide:star" /> Top Picks</h3>
               
@@ -192,7 +202,7 @@ function getResultForEntry(entry: any): string {
                   v-for="(pick, i) in topPicks"
                   :key="pick.postPosition"
                   class="flex items-center justify-between p-2 rounded"
-                  :class="i === 0 ? 'bg-warning/20 border border-warning/30' : 'bg-base-200'"
+                  :class="i === 0 ? 'bg-warning/20 border border-warning/30' : 'bg-slate-700/50'"
                 >
                   <div class="flex items-center gap-2">
                     <span class="badge" :class="i === 0 ? 'badge-warning' : 'badge-ghost'">#{{ i + 1 }}</span>
@@ -209,7 +219,7 @@ function getResultForEntry(entry: any): string {
               <p v-else class="text-base-content/50">No confidence scores available</p>
             </div>          </div>
           <!-- Bet History -->
-          <div v-if="hasBets" class="card bg-base-100 shadow">
+          <div v-if="hasBets" class="card bg-slate-800/50 border border-slate-700">
             <div class="card-body">
               <h3 class="card-title text-lg"><Icon name="lucide:receipt" /> Your Bets</h3>
               
@@ -244,7 +254,7 @@ function getResultForEntry(entry: any): string {
             </div>          </div>
           
           <!-- Actions -->
-          <div class="card bg-base-100 shadow">
+          <div class="card bg-slate-800/50 border border-slate-700">
             <div class="card-body">
               <button class="btn btn-primary w-full mb-2" @click="$router.push('/bets/new')">
                 <Icon name="lucide:plus" class="mr-2" />

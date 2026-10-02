@@ -11,12 +11,11 @@ export default defineEventHandler(async (event) => {
     return
   }
 
-  const cookies = parseCookies(event)
   const config = useRuntimeConfig()
 
   // Check shared marketplace cookie first, then app-specific
-  const sharedAuth = cookies['app-auth']
-  const appAuth = cookies['auth_token']
+  const sharedAuth = getCookie(event, 'app-auth')
+  const appAuth = getCookie(event, 'auth_token')
 
   const validShared = sharedAuth && sharedAuth === config.authPassword
   const validApp = appAuth && appAuth === 'authenticated'

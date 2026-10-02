@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Root page - redirects based on auth status
-const { data: auth } = await useFetch('/api/auth/status')
+const { data: auth } = await useFetch('/api/auth/status', { credentials: 'include' })
 
 if (auth.value?.authenticated) {
   await navigateTo('/races')
